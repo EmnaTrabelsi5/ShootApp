@@ -52,6 +52,12 @@ INSTALLED_APPS = [
 # Modèle utilisateur personnalisé (doit être défini AVANT la première migration)
 AUTH_USER_MODEL = 'utilisateurApp.Utilisateur'
 
+# Connexion : identifiant court (president1) ou e-mail complet
+AUTHENTICATION_BACKENDS = ['utilisateurApp.backends.IdentifiantBackend']
+LOGIN_URL = 'comptes:connexion'
+LOGIN_REDIRECT_URL = 'joueurs:liste'
+LOGOUT_REDIRECT_URL = 'accueil'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -67,13 +73,14 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'config.context_processors.entete',
             ],
         },
     },
@@ -128,6 +135,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # Fichiers uploadés (photos utilisateurs, logos équipes)
 MEDIA_URL = 'media/'

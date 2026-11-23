@@ -15,6 +15,11 @@ class Joueur(Utilisateur):
         MILIEU = "MIL", "Milieu"
         ATTAQUANT = "ATT", "Attaquant"
 
+    class Statut(models.TextChoices):
+        DISPONIBLE = "DISPONIBLE", "Disponible"
+        DISPENSE = "DISPENSE", "Dispensé"
+        BLESSE = "BLESSE", "Blessé"
+
     class PiedFort(models.TextChoices):
         DROIT = "DROIT", "Droit"
         GAUCHE = "GAUCHE", "Gauche"
@@ -22,6 +27,7 @@ class Joueur(Utilisateur):
 
     nationalite = models.CharField(max_length=60, blank=True)
     poste = models.CharField(max_length=3, choices=Poste.choices)
+    statut = models.CharField(max_length=10, choices=Statut.choices, default=Statut.DISPONIBLE)
     pied_fort = models.CharField(max_length=6, choices=PiedFort.choices, blank=True)
     taille_cm = models.PositiveSmallIntegerField(null=True, blank=True)
     poids_kg = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
@@ -48,6 +54,22 @@ class Joueur(Utilisateur):
     def save(self, *args, **kwargs):
         self.role = Utilisateur.Role.JOUEUR
         super().save(*args, **kwargs)
+
+    # Classes CSS utilisées par le template (footlab.css : p-gardien, s-blesse...)
+    POSTE_CSS = {"GB": "gardien", "DEF": "defense", "MIL": "milieu", "ATT": "attaque"}
+    STATUT_CSS = {"DISPONIBLE": "disponible", "DISPENSE": "dispense", "BLESSE": "blesse"}
+
+    @property
+    def poste_css(self):
+        return self.POSTE_CSS.get(self.poste, "milieu")
+
+    @property
+    def statut_css(self):
+        return self.STATUT_CSS.get(self.statut, "disponible")
+
+    @property
+    def initiales(self):
+        return f"{(self.prenom or ' ')[0]}{(self.nom or ' ')[0]}".strip().upper()
 
     @property
     def age(self):

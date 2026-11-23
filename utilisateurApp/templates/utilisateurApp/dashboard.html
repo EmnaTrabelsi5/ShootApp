@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Tableau de bord • YALLA{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+{% block body_class %}page-simple{% endblock %}
+{% block nav_joueurs_current %}{% endblock %}
+
+{% block content %}
+<section class="dash">
+  <header class="dash-hero">
+    <p class="eyebrow">Administration · Saison {{ saison }}</p>
+    <h1>Tableau de bord</h1>
+    <p>Bienvenue {{ user.prenom }}. Le tableau de bord du club arrive bientôt. En attendant, tu peux gérer tous les comptes et les données depuis l'administration Django.</p>
+    <span class="dash-soon">Bientôt</span>
+  </header>
+  <div class="dash-grid">
+    <a class="dash-card" href="{% url 'admin:index' %}">{% icon "shield" %}<b>Administration</b><small>Comptes, équipes, matchs : tout gérer</small></a>
+    <a class="dash-card" href="{% url 'joueurs:liste' %}">{% icon "users" %}<b>Joueurs</b><small>Vestiaire, penderie et casiers</small></a>
+    <div class="dash-card is-soon">{% icon "calendar" %}<b>Séances</b><small>Bientôt</small></div>
+    <div class="dash-card is-soon">{% icon "binoculars" %}<b>Scouting</b><small>Bientôt</small></div>
+  </div>
+</section>
+{% endblock %}
