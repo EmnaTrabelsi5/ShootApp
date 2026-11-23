@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'staffApp',
     'competitionApp',
     'messageApp',
+    'training',  # module Séances (entraînement)
 ]
 
 # Modèle utilisateur personnalisé (doit être défini AVANT la première migration)

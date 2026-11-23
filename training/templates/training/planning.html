@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+{% load static footlab %}
+{# Module Séances (projet entraînement) intégré dans ShootApp : la barre du haut et le rail viennent de base.html. #}
+
+{% block title %}Séances & Planning • YALLA{% endblock %}
+{% block nav_joueurs_current %}{% endblock %}
+{% block nav_seances %}active{% endblock %}
+{% block nav_seances_current %} aria-current="page"{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'training/css/seances.css' %}?v=4">
+  <link rel="stylesheet" href="{% static 'training/css/seances-shootapp.css' %}?v=4">
+  <script src="{% static 'training/js/lucide.min.js' %}"></script>
+  <script type="importmap">
+  {"imports": {"three": "{% static 'training/js/vendor/three/three.module.min.js' %}",
+               "three/addons/": "{% static 'training/js/vendor/three/' %}"}}
+  </script>
+{% endblock %}
+
+{% block content %}
+<div class="seances">
+
+  <!-- ===================== EN-TÊTE (style ShootApp) ===================== -->
+  <section class="hero se-hero">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="live-dot"></span>Entraînement · Micro-cycle S{{ num_semaine }}{% if semaine_en_cours %} · En cours{% endif %} · Saison {{ saison_longue }}</p>
+      <h1 class="hero-title">Planning<br><span class="hero-title-2">&amp; Séances</span></h1>
+      <p class="hero-sub">Micro-cycle préparatoire : suivi de charge, convocations et tactique de match.</p>
+      <div class="hero-actions">
+        <button type="button" class="btn btn-primary" data-planifier><span class="btn-ic">{% icon "plus" %}</span><span>Planifier un entraînement</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Barre d'outils : semaine + filtres -->
+  <section class="card se-toolbar">
+      <div class="head-tools">
+        <div class="week-nav-wrap">
+          <div class="week-nav">
+            <a class="wk-btn" href="?semaine={{ semaine_prec }}{% if objectif_actif %}&objectif={{ objectif_actif }}{% endif %}"><i data-lucide="chevron-left"></i></a>
+            <span>{{ libelle_semaine }}</span>
+            <a class="wk-btn" href="?semaine={{ semaine_suiv }}{% if objectif_actif %}&objectif={{ objectif_actif }}{% endif %}"><i data-lucide="chevron-right"></i></a>
+          </div>
+          <a class="btn-today" href="{% url 'seances:planning' %}">AUJOURD'HUI</a>
+        </div>
+        <div class="segmented">
+          <button type="button" class="active">Semaine</button>
+          <button type="button">Mois</button>
+          <button type="button">Année</button>
+        </div>
+        <div class="filters">
+          <span class="filters-label">FILTRES :</span>
+          {% for val, label in filtres_objectif %}
+          <a class="chip chip-groupe o-{{ val|default:'tous'|lower }}{% if val == objectif_actif %} active{% endif %}"
+             href="?semaine={{ lundi_iso }}{% if val %}&objectif={{ val }}{% endif %}"><span class="chip-dot"></span>{{ label }}</a>
+          {% endfor %}
+        </div>
+      </div>
+  </section>
+
+    <!-- KPI -->
+    <section class="kpis">
+      <div class="kpi kpi-green">
+        <div class="kpi-top"><span>TEMPS DE TERRAIN</span><span class="kpi-ic green"><i data-lucide="timer"></i></span></div>
+        <div class="kpi-bottom"><span class="kpi-val">{{ kpi.terrain }}</span><span class="kpi-tag green"><i data-lucide="trending-up"></i>{{ kpi.terrain_delta }}</span></div>
+        <div class="kpi-bar"><span style="width:{{ kpi.terrain_pct }}%"></span></div>
+        <div class="kpi-note"><span>Objectif {{ kpi.objectif }}</span><span>{{ kpi.terrain_pct }} %</span></div>
+      </div>
+      <div class="kpi kpi-blue">
+        <div class="kpi-top"><span>DISPONIBILITÉ EFFECTIF</span><span class="kpi-ic blue"><i data-lucide="users"></i></span></div>
+        <div class="kpi-bottom"><span class="kpi-val">{{ kpi.dispo_pct }}%</span><span class="kpi-tag blue">{{ kpi.dispo }}/{{ kpi.effectif }} dispo</span></div>
+        <div class="kpi-bar"><span style="width:{{ kpi.dispo_pct }}%"></span></div>
+        <div class="kpi-note"><span>{{ kpi.absents }} absent{{ kpi.absents|pluralize }}</span><span>Seuil 90 %</span></div>
+      </div>
+      <div class="kpi kpi-orange">
+        <div class="kpi-top"><span>INDICE RPE MOYEN</span><span class="kpi-ic orange"><i data-lucide="gauge"></i></span></div>
+        <div class="kpi-bottom"><span class="kpi-val">{{ kpi.rpe }}<small>/10</small></span><span class="kpi-tag orange"><span class="chip-dot"></span>{{ kpi.charge }}</span></div>
+        <div class="kpi-bar"><span style="width:{{ kpi.rpe_pct }}%"></span></div>
+        <div class="kpi-note"><span>Zone cible 6–7</span><span>S-1 : {{ kpi.rpe_prec }}</span></div>
+      </div>
+      <div class="kpi kpi-dark kpi-match">
+        <img class="sticker st-goal" src="{% static 'training/img/stickers/goal.svg' %}" alt="">
+        <div class="km-top">
+          <span class="km-label"><span class="dot-green"></span>PROCHAIN MATCH</span>
+          {% if match %}<span class="km-j">{{ match.j }}</span>{% endif %}
+        </div>
+        {% if match %}
+        <div class="km-teams">
+          <div class="km-team">
+            <img class="km-logo" src="{% static 'training/img/logo-yalla.svg' %}" alt="">
+            <span>YALLA</span>
+          </div>
+          <span class="km-vs">VS</span>
+          <div class="km-team">
+            {% if match.logo %}<img class="km-logo km-logo-adv" src="{{ match.logo }}" alt="Logo {{ match.adversaire }}">{% else %}<span class="km-shield"><b>{{ match.initiales }}</b></span>{% endif %}
+            <span title="{{ match.adversaire }}">{{ match.adversaire|truncatechars:14 }}</span>
+          </div>
+        </div>
+        <div class="km-infos">
+          <span><i data-lucide="calendar-days"></i>{{ match.jour_court }}{% if match.heure %} • {{ match.heure }}{% endif %}</span>
+          {% if match.terrain %}<span><i data-lucide="map-pin"></i>{{ match.terrain|truncatechars:16 }}</span>{% endif %}
+          {% if match.competition %}<span class="km-comp"><i data-lucide="trophy"></i>{{ match.competition }}</span>{% endif %}
+        </div>
+        {% else %}
+        <div class="km-vide">Aucun match programmé</div>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Calendrier hebdomadaire -->
+    <section class="week">
+      <img class="sticker st-plot" src="{% static 'training/img/stickers/plot.svg' %}" alt="">
+      {% for j in semaine %}
+      <div class="day day-{{ j.type }}{% if 'AUJOURD' in j.jour %} day-today{% endif %}">
+        <div class="day-head">
+          <span class="day-name">{% if j.type == 'match' %}<span class="dot-yellow"></span>{% endif %}{{ j.jour }}</span>
+          <span class="day-date">{{ j.date }}</span>
+        </div>
+
+        {% if j.type == 'repos' %}
+          <div class="slot slot-repos">
+            <i data-lucide="leaf"></i>
+            <strong>{{ j.titre }}</strong>
+            <span>{{ j.description|truncatechars:40 }}</span>
+            <em>Récupération</em>
+          </div>
+          <div class="day-foot">
+            <a class="btn-edit" href="{{ j.url_modif }}" data-modifier="{{ j.pk }}"><i data-lucide="pencil"></i>Modifier</a>
+            <a class="btn-trash" href="{{ j.url_suppr }}" title="Supprimer" data-supprimer="{{ j.pk }}" data-titre="{{ j.titre }}"><i data-lucide="trash-2"></i></a>
+          </div>
+
+        {% elif j.type == 'libre' %}
+          <a class="slot slot-libre" href="{{ j.url_ajout }}" data-planifier data-date="{{ j.iso }}">
+            <i data-lucide="circle-plus"></i>
+            <strong>AJOUTER</strong>
+            <span>+ Créneau</span>
+          </a>
+          <div class="day-foot"><a class="btn-ghost" href="{{ j.url_ajout_repos }}">+ REPOS</a></div>
+
+        {% elif j.type == 'match' %}
+          <div class="slot slot-match">
+            <div class="slot-top"><span class="time"><i data-lucide="clock"></i>{{ j.horaire }}</span><span class="tag tag-yellow">{{ j.tag }}</span></div>
+            {% if j.logo %}<img class="slot-logo" src="{{ j.logo }}" alt="Logo {{ j.titre }}">{% endif %}
+            <strong>{{ j.titre }}</strong>
+            <p>{{ j.description }}</p>
+            <div class="slot-foot"><span>{{ j.lieu }}</span></div>
+          </div>
+          <div class="day-foot match-foot" title="Géré par le module Match"><span>{{ j.competition }}</span><i data-lucide="trophy"></i></div>
+
+        {% else %}
+          <div class="slot slot-seance">
+            <div class="slot-top"><span class="time"><i data-lucide="clock"></i>{{ j.horaire }}</span><span class="tag tag-{{ j.tag_couleur }}">{{ j.tag }}</span></div>
+            <span class="grp-badge o-{{ j.objectif|lower }}"><i class="g-dot"></i>{{ j.objectif_label }}</span>
+            <strong>{{ j.titre }}</strong>
+            <p>{{ j.description }}</p>
+            <div class="slot-foot"><span>{{ j.joueurs }}</span><span class="tag tag-{{ j.lieu_couleur }}">{{ j.lieu }}</span></div>
+            {% if j.exercices %}<button type="button" class="btn-3d" data-voir3d="{{ j.exercices|join:',' }}"><i data-lucide="box"></i>Voir en 3D<b>{{ j.exercices|length }}</b></button>{% endif %}
+            {% if j.autres %}<span class="plus-seances">+{{ j.autres }} autre{{ j.autres|pluralize }}</span>{% endif %}
+          </div>
+          <div class="day-foot">
+            <a class="btn-edit" href="{{ j.url_modif }}" data-modifier="{{ j.pk }}"><i data-lucide="pencil"></i>Modifier</a>
+            <a class="btn-trash" href="{{ j.url_suppr }}" title="Supprimer" data-supprimer="{{ j.pk }}" data-titre="{{ j.titre }}"><i data-lucide="trash-2"></i></a>
+          </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </section>
+
+    <!-- Bas de page : tactique + ateliers -->
+    <section class="bottom">
+      <div class="card tactic">
+        <div class="tactic-head">
+          <h2><i data-lucide="shirt"></i>TABLEAU TACTIQUE • ANIMATION &amp; PRESSING</h2>
+          {% if seance_tableau %}<span class="tac-seance" title="Joueurs convoqués à la prochaine séance"><i data-lucide="users"></i>{{ seance_tableau.titre }} · {{ seance_tableau.date|date:"D j M" }}</span>{% endif %}
+          <span class="tac-save" id="tac-save"></span>
+          <div class="t3d-switch" role="group" aria-label="Affichage du tableau">
+            <button type="button" class="active" data-vue="2d" aria-pressed="true">2D</button>
+            <button type="button" data-vue="3d" aria-pressed="false"><i data-lucide="box"></i>Vue 3D</button>
+          </div>
+          <span class="pill-dispo" id="tac-dispo" title="Détecté automatiquement selon la position des joueurs"><span class="chip-dot"></span>DISPOSITIF <b id="tac-formation">4-3-3</b></span>
+        </div>
+
+        <div class="pitch" id="pitch" data-url="{% url 'seances:tableau' %}">
+          <div class="line-mid"></div>
+          <div class="circle-mid"></div>
+          <div class="box box-l"></div><div class="box6 box6-l"></div>
+          <div class="box box-r"></div><div class="box6 box6-r"></div>
+
+          {% for p in pions %}
+          <span class="player {{ p.classe }}{% if p.nom %} has-nom{% endif %}" data-drag="{{ p.id }}" data-num="{{ p.numero }}" data-nom="{{ p.nom }}"{% if p.complet %} aria-label="{{ p.complet }}"{% endif %} style="left:{{ p.x }}%;top:{{ p.y }}%">{% if p.photo %}<img class="player-photo" src="{{ p.photo }}" alt="">{% endif %}<b>{{ p.numero }}</b>{% if p.nom %}<em class="player-nom">{{ p.nom }}</em>{% endif %}</span>
+          {% endfor %}
+
+          <span class="zone-label" data-drag="zone" style="left:50%;top:92%"><i data-lucide="crosshair"></i>Zone de déclenchement</span>
+        </div>
+
+        <div class="t3d" id="t3d" hidden>
+          <canvas id="t3d-canvas" aria-label="Terrain en 3D : fais glisser pour tourner, molette pour zoomer"></canvas>
+          <div class="t3d-cams" role="group" aria-label="Caméras">
+            <button type="button" data-cam="tribune" class="active"><i data-lucide="armchair"></i>Tribune</button>
+            <button type="button" data-cam="coach"><i data-lucide="megaphone"></i>Coach</button>
+            <button type="button" data-cam="drone"><i data-lucide="scan"></i>Drone</button>
+            <button type="button" data-cam="gardien"><i data-lucide="shield"></i>Gardien</button>
+          </div>
+        </div>
+
+        <div class="tactic-foot">
+          {% if seance_tableau %}<span class="tac-banc"><b>Remplaçants :</b> {% for j in banc %}{{ j.prenom|slice:":1" }}. {{ j.nom }}{% if not forloop.last %}, {% endif %}{% empty %}aucun{% endfor %}</span>
+          {% else %}<span><b>Exercice :</b> Rondo Déviation 4v4+3 avec transition rapide</span>{% endif %}
+          <span class="tac-hint" id="tac-hint-2d"><i data-lucide="hand"></i>Glisse les joueurs et les repères avec la souris</span>
+          <span class="tac-hint" id="tac-hint-3d" hidden><i data-lucide="rotate-3d"></i>Fais glisser pour tourner, molette pour zoomer. Les joueurs se placent en 2D.</span>
+          <button type="button" class="tac-reset" id="tac-reset"><i data-lucide="rotate-ccw"></i>RÉINITIALISER</button>
+        </div>
+      </div>
+
+      <div class="card ateliers">
+        <img class="sticker st-crampon" src="{% static 'training/img/stickers/crampon.svg' %}" alt="">
+        <div class="at-head">
+          <h2>MATÉRIEL • PROCHAINE SÉANCE</h2>
+          {% if seance_materiel %}<span class="pill-total">{{ seance_materiel.date|date:"d/m" }}{% if seance_materiel.heure_debut %} • {{ seance_materiel.heure_debut|time:"H:i" }}{% endif %}</span>{% endif %}
+        </div>
+        {% if materiel_items %}
+        <p class="mat-for"><i data-lucide="clipboard-list"></i>{{ seance_materiel.titre }}</p>
+        <div class="mat-board">
+          {% for m in materiel_items %}
+          <div class="mat-item" title="{{ m.nom }}">
+            <canvas data-mat-thumb="{{ m.id }}"></canvas>
+            <b>{{ m.quantite }}</b>
+            <span>{{ m.nom }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="mat-empty"><i data-lucide="package-open"></i>Aucun matériel choisi pour la prochaine séance.<br>Ajoute-le dans <b>Planifier un entraînement</b>.</div>
+        {% endif %}
+
+        <div class="at-foot">YALLA • MODULE ENTRAÎNEMENT</div>
+      </div>
+    </section>
+
+<!-- ===================== POPUP PLANIFICATION ===================== -->
+<div class="modal-overlay" id="modal-planif" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-titre">
+    <div class="modal-head">
+      <div>
+        <h3 id="modal-titre"><span class="marker">PLANIFIER UN ENTRAÎNEMENT</span></h3>
+        <p id="modal-sous-titre">Ajoute une séance au calendrier de l'effectif pro.</p>
+      </div>
+      <button type="button" class="modal-close" data-fermer aria-label="Fermer"><i data-lucide="x"></i></button>
+    </div>
+
+    <form id="form-planif" method="post" action="{% url 'seances:planifier' %}" data-url-creer="{% url 'seances:planifier' %}" data-url-base="{% url 'seances:planning' %}" novalidate>
+      {% csrf_token %}
+      <div class="form-error-global" hidden></div>
+
+      <!-- Barre des étapes -->
+      <ol class="wz-steps" id="wz-steps">
+        <li data-go="1"><span class="wz-dot"><i data-lucide="target"></i></span><em>Type</em></li>
+        <li data-go="2"><span class="wz-dot"><i data-lucide="calendar-clock"></i></span><em>Infos</em></li>
+        <li data-go="3"><span class="wz-dot"><i data-lucide="users"></i></span><em>Joueurs</em></li>
+        <li data-go="4"><span class="wz-dot"><i data-lucide="box"></i></span><em>Exercices</em></li>
+        <li data-go="5"><span class="wz-dot"><i data-lucide="package"></i></span><em>Matériel</em></li>
+        <li data-go="6"><span class="wz-dot"><i data-lucide="clipboard-check"></i></span><em>Récap</em></li>
+      </ol>
+      <div class="wz-progress"><span id="wz-bar"></span></div>
+
+      <section class="wz-step" data-step="1" data-champs="objectif">
+        <h4 class="wz-title"><b>1</b>Type et objectif de la séance</h4>
+        <div class="type-pills">
+          {% for val, label in form.fields.type_seance.choices %}
+          <label class="type-pill type-{{ val|lower }}">
+            <input type="radio" name="type_seance" value="{{ val }}" {% if val == 'ENTRAINEMENT' %}checked{% endif %}>
+            <span>{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+        <div class="field groupe-field" data-field="objectif">
+          <label>Objectif de la séance</label>
+          <div class="groupe-pills objectif-pills">
+            {% for val, label in form.fields.objectif.choices %}
+            <label class="groupe-pill o-{{ val|lower }}">
+              <input type="radio" name="objectif" value="{{ val }}" {% if val == 'TACTIQUE' %}checked{% endif %}>
+              <span><i class="g-dot"></i>{{ label }}</span>
+            </label>
+            {% endfor %}
+          </div>
+          <small class="err"></small>
+        </div>
+      </section>
+
+      <section class="wz-step" data-step="2" data-champs="titre date heure_debut heure_fin terrain rpe description" hidden>
+        <h4 class="wz-title"><b>2</b>Informations pratiques</h4>
+        <div class="form-grid">
+          <div class="field span-2" data-field="titre">
+            <label for="{{ form.titre.id_for_label }}">{{ form.titre.label }}</label>{{ form.titre }}<small class="err"></small>
+          </div>
+          <div class="field" data-field="date">
+            <label for="{{ form.date.id_for_label }}">{{ form.date.label }}</label>{{ form.date }}<small class="err"></small>
+          </div>
+          <div class="field field-hours" data-field="heure_debut heure_fin">
+            <label>Horaire</label>
+            <div class="hours">{{ form.heure_debut }}<span>→</span>{{ form.heure_fin }}</div><small class="err"></small>
+          </div>
+          <div class="field" data-field="terrain">
+            <label for="{{ form.terrain.id_for_label }}">{{ form.terrain.label }}</label>{{ form.terrain }}<small class="err"></small>
+          </div>
+          <div class="field" data-field="rpe">
+            <label for="{{ form.rpe.id_for_label }}">{{ form.rpe.label }} <b class="rpe-val">7</b></label>
+            <input type="range" name="rpe" id="{{ form.rpe.id_for_label }}" min="1" max="10" step="0.5" value="7"><small class="err"></small>
+          </div>
+          <div class="field span-2" data-field="description">
+            <label for="{{ form.description.id_for_label }}">{{ form.description.label }}</label>{{ form.description }}<small class="err"></small>
+          </div>
+        </div>
+      </section>
+
+      <section class="wz-step" data-step="3" data-champs="joueurs" hidden>
+        <h4 class="wz-title"><b>3</b>Joueurs convoqués</h4>
+        <p class="wz-help">Choisis les joueurs sur le terrain. Les blessés ne peuvent pas être convoqués, les dispensés sont signalés.</p>
+        <div class="form-grid">
+          <div class="field span-2 wz-joueurs" data-field="joueurs">
+            <label>Joueurs convoqués</label>
+            <button type="button" class="pk-trigger" id="pk-trigger">
+              <span class="pk-stack" id="pk-stack"></span>
+              <span class="pk-trigger-txt" id="pk-trigger-txt">Choisir les joueurs</span>
+              <i data-lucide="chevron-right"></i>
+            </button>
+            <div id="pk-inputs"></div>
+            <small class="err"></small>
+          </div>
+        </div>
+      </section>
+
+      <section class="wz-step" data-step="4" data-champs="exercices" hidden>
+        <h4 class="wz-title"><b>4</b>Exercices 3D</h4>
+        <p class="wz-help">Seuls les exercices de l'objectif choisi sont proposés. Clique sur « 3D » pour voir l'animation.</p>
+        <div class="form-grid">
+          <div class="field span-2" data-field="exercices">
+            <label>Exercices 3D <span class="ex-count" id="ex-count">0 choisi</span></label>
+            <div class="ex-list" id="ex-list"></div>
+            <small class="err"></small>
+          </div>
+        </div>
+      </section>
+
+      <section class="wz-step" data-step="5" data-champs="materiel" hidden>
+        <h4 class="wz-title"><b>5</b>Matériel</h4>
+        <p class="wz-help">Clique sur un équipement pour le prendre, puis ajuste la quantité. Il doit suffire pour les exercices choisis.</p>
+        <div class="form-grid">
+          <div class="field span-2" data-field="materiel">
+            <label>Matériel de la séance <span class="ex-count" id="mat-count">Aucun</span></label>
+            <div class="mat-grid" id="mat-grid"></div>
+            <input type="hidden" name="materiel" id="mat-input" value="{}">
+            <small class="err"></small>
+          </div>
+        </div>
+      </section>
+
+      <section class="wz-step" data-step="6" hidden>
+        <h4 class="wz-title"><b>6</b>Récapitulatif</h4>
+        <div class="wz-recap" id="wz-recap"></div>
+      </section>
+
+      <div class="modal-foot wz-foot">
+        <button type="button" class="btn-cancel" data-fermer id="wz-annuler">Annuler</button>
+        <button type="button" class="btn-cancel" id="wz-prec" hidden><i data-lucide="arrow-left"></i>Précédent</button>
+        <span class="wz-count" id="wz-count">Étape 1 / 6</span>
+        <button type="button" class="btn-plan" id="wz-suiv"><span>SUIVANT</span><i data-lucide="arrow-right"></i></button>
+        <button type="submit" class="btn-plan" id="wz-save" hidden><i data-lucide="check"></i><span class="submit-txt">ENREGISTRER LA SÉANCE</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ===================== SÉLECTEUR DE JOUEURS (terrain) ===================== -->
+<div class="modal-overlay pk-overlay" id="modal-joueurs" hidden>
+  <div class="picker" role="dialog" aria-modal="true" aria-labelledby="pk-titre">
+    <div class="picker-head">
+      <div>
+        <h3 id="pk-titre"><span class="marker">CONVOQUER LES JOUEURS</span></h3>
+        <p>Clique sur un joueur pour l'ajouter ou le retirer de la séance. Les blessés ne peuvent pas être convoqués.</p>
+      </div>
+      <div class="pk-count"><b id="pk-count">0</b><span>sélectionnés</span></div>
+      <button type="button" class="modal-close" data-pk-fermer aria-label="Fermer"><i data-lucide="x"></i></button>
+    </div>
+
+    <div class="picker-tools">
+      <label class="pk-search"><i data-lucide="search"></i><input type="search" id="pk-search" placeholder="Nom ou numéro…"></label>
+      <div class="pk-tabs" id="pk-tabs">
+        <button type="button" data-poste="" class="active">Tous</button>
+        <button type="button" data-poste="GARDIEN" class="t-gardien">Gardiens</button>
+        <button type="button" data-poste="DEFENSE" class="t-defense">Défense</button>
+        <button type="button" data-poste="MILIEU" class="t-milieu">Milieu</button>
+        <button type="button" data-poste="ATTAQUE" class="t-attaque">Attaque</button>
+      </div>
+      <div class="pk-statuts" id="pk-statuts">
+        <button type="button" data-statut="" class="active">Tous</button>
+        <button type="button" data-statut="DISPONIBLE" class="s-disponible"><i></i>Disponibles <b></b></button>
+        <button type="button" data-statut="DISPENSE" class="s-dispense"><i></i>Dispensés <b></b></button>
+        <button type="button" data-statut="BLESSE" class="s-blesse"><i></i>Blessés <b></b></button>
+      </div>
+      <div class="pk-actions">
+        <button type="button" id="pk-all"><i data-lucide="check-check"></i>Tout sélectionner</button>
+        <button type="button" id="pk-clear"><i data-lucide="eraser"></i>Vider</button>
+      </div>
+    </div>
+
+    <div class="pk-pitch" id="pk-pitch">
+      <div class="pk-lines"><span class="pk-mid"></span><span class="pk-circle"></span><span class="pk-box pk-box-l"></span><span class="pk-box pk-box-r"></span></div>
+      {% for code, label in poste_choices %}
+      <section class="pk-zone z-{{ code|lower }}" data-zone="{{ code }}">
+        <header><span class="g-dot"></span>{{ label }} <em class="pk-zone-n"></em></header>
+        <div class="pk-grid"></div>
+      </section>
+      {% endfor %}
+      <div class="pk-empty" id="pk-empty" hidden>Aucun joueur. Ajoute ton effectif dans l'admin (Joueurs) ou lance <code>python manage.py creer_joueurs_demo</code>.</div>
+    </div>
+
+    <div class="pk-toast" id="pk-toast" hidden></div>
+    <div class="pk-tray">
+      <span class="pk-tray-label">Sélection</span>
+      <div class="pk-tray-list" id="pk-tray"><span class="pk-tray-empty">Aucun joueur sélectionné</span></div>
+      <button type="button" class="btn-plan" id="pk-valider"><i data-lucide="check"></i>VALIDER</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CONFIRMATION SUPPRESSION ===================== -->
+<div class="modal-overlay" id="modal-suppr" hidden>
+  <div class="modal modal-confirm" role="alertdialog" aria-modal="true">
+    <div class="confirm-ic"><i data-lucide="trash-2"></i></div>
+    <h3>Supprimer cette séance ?</h3>
+    <p><b class="confirm-titre"></b> sera supprimée du calendrier, avec ses ateliers. Cette action est définitive.</p>
+    <div class="modal-foot">
+      <button type="button" class="btn-cancel" data-fermer>Annuler</button>
+      <button type="button" class="btn-danger" id="btn-confirm-suppr">Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== VISIONNEUSE 3D ===================== -->
+<div class="modal-overlay v3d-overlay" id="modal-3d" hidden>
+  <div class="v3d" role="dialog" aria-modal="true" aria-labelledby="v3d-titre">
+    <div class="v3d-head">
+      <div class="v3d-title">
+        <span class="v3d-kicker" id="v3d-obj"></span>
+        <h3 id="v3d-titre"><span class="marker"></span></h3>
+      </div>
+      <div class="v3d-tabs" id="v3d-tabs"></div>
+      <button type="button" class="modal-close" data-v3d-fermer aria-label="Fermer"><i data-lucide="x"></i></button>
+    </div>
+    <div class="v3d-body">
+      <div class="v3d-stage" id="v3d-stage">
+        <canvas id="v3d-canvas"></canvas>
+        <div class="v3d-fade" id="v3d-fade"></div>
+        <div class="v3d-goal" id="v3d-goal">BUT&nbsp;!</div>
+        <div class="v3d-cams" id="v3d-cams">
+          <button type="button" data-cam="tv" class="active"><i data-lucide="tv"></i>TV</button>
+          <button type="button" data-cam="dessus"><i data-lucide="map"></i>Dessus</button>
+          <button type="button" data-cam="coach"><i data-lucide="eye"></i>Coach</button>
+        </div>
+        <div class="v3d-hint"><i data-lucide="mouse-pointer-2"></i>Glisse pour tourner · molette pour zoomer</div>
+        <div class="v3d-loading" id="v3d-loading">Chargement de la 3D…</div>
+      </div>
+      <aside class="v3d-info">
+        <p class="v3d-desc" id="v3d-desc"></p>
+        <div class="v3d-meta">
+          <span><i data-lucide="timer"></i><b id="v3d-duree"></b></span>
+          <span><i data-lucide="users"></i><b id="v3d-joueurs"></b></span>
+        </div>
+        <div class="v3d-block"><h4>Matériel</h4><p id="v3d-materiel"></p></div>
+        <div class="v3d-block"><h4>Consignes</h4><ul id="v3d-consignes"></ul></div>
+        <div class="v3d-legend">
+          <span><i class="lg lg-a"></i>Équipe A</span>
+          <span><i class="lg lg-b"></i>Chasubles</span>
+          <span><i class="lg lg-gk"></i>Gardien</span>
+          <span><i class="lg lg-plot"></i>Plot</span>
+        </div>
+      </aside>
+    </div>
+    <div class="v3d-bar">
+      <button type="button" class="v3d-play" id="v3d-play" aria-label="Lecture / pause">
+        <i data-lucide="pause" class="ic-pause"></i><i data-lucide="play" class="ic-play"></i>
+      </button>
+      <button type="button" class="v3d-btn" id="v3d-replay" title="Rejouer"><i data-lucide="rotate-ccw"></i></button>
+      <input type="range" id="v3d-time" min="0" max="1000" value="0" aria-label="Temps">
+      <span class="v3d-clock" id="v3d-clock">0.0 s</span>
+      <div class="v3d-speed" id="v3d-speed">
+        <button type="button" data-speed="0.5">×0.5</button>
+        <button type="button" data-speed="1" class="active">×1</button>
+        <button type="button" data-speed="2">×2</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ joueurs_data|json_script:"joueurs-data" }}
+{{ exercices_data|json_script:"exercices-data" }}
+{{ materiel_data|json_script:"materiel-data" }}
+{{ validation_data|json_script:"validation-data" }}
+{{ tableau_data|json_script:"tableau-data" }}
+{{ regles_type|json_script:"regles-type" }}
+<script>lucide.createIcons();</script>
+<script src="{% static 'training/js/joueurs.js' %}?v=39"></script>
+<script src="{% static 'training/js/exercices.js' %}?v=39"></script>
+<script src="{% static 'training/js/validation.js' %}?v=39"></script>
+<script src="{% static 'training/js/wizard.js' %}?v=39"></script>
+<script src="{% static 'training/js/planifier.js' %}?v=39"></script>
+<script src="{% static 'training/js/tableau.js' %}?v=39"></script>
+<script type="module" src="{% static 'training/js/exercices3d.js' %}?v=39"></script>
+<script type="module" src="{% static 'training/js/materiel3d.js' %}?v=39"></script>
+<script type="module" src="{% static 'training/js/tableau3d.js' %}?v=2"></script>
+{% endblock %}

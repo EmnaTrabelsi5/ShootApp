@@ -1,0 +1,233 @@
+[
+{
+ "model": "training.seance",
+ "pk": 1,
+ "fields": {
+  "date": "2026-11-27",
+  "heure_debut": "07:18:00",
+  "heure_fin": "11:18:00",
+  "type_seance": "ENTRAINEMENT",
+  "objectif": "TACTIQUE",
+  "titre": "taraji",
+  "description": "dedede",
+  "rpe": 7.0,
+  "nb_joueurs": 7,
+  "terrain": "Honneur",
+  "joueurs_ids": [
+   23,
+   20,
+   19,
+   22,
+   28,
+   42,
+   39
+  ],
+  "exercices": [],
+  "materiel": {}
+ }
+},
+{
+ "model": "training.seance",
+ "pk": 2,
+ "fields": {
+  "date": "2026-11-24",
+  "heure_debut": null,
+  "heure_fin": null,
+  "type_seance": "MATCH",
+  "objectif": "TACTIQUE",
+  "titre": "taraji",
+  "description": "",
+  "rpe": 7.0,
+  "nb_joueurs": 20,
+  "terrain": "Honneurdede",
+  "joueurs_ids": [],
+  "exercices": [],
+  "materiel": {}
+ }
+},
+{
+ "model": "training.seance",
+ "pk": 3,
+ "fields": {
+  "date": "2026-12-21",
+  "heure_debut": null,
+  "heure_fin": null,
+  "type_seance": "ENTRAINEMENT",
+  "objectif": "TACTIQUE",
+  "titre": "223",
+  "description": "",
+  "rpe": 7.0,
+  "nb_joueurs": 20,
+  "terrain": "2",
+  "joueurs_ids": [],
+  "exercices": [],
+  "materiel": {}
+ }
+},
+{
+ "model": "training.seance",
+ "pk": 4,
+ "fields": {
+  "date": "2026-12-22",
+  "heure_debut": null,
+  "heure_fin": null,
+  "type_seance": "ENTRAINEMENT",
+  "objectif": "TACTIQUE",
+  "titre": "taraji",
+  "description": "grgrgr",
+  "rpe": 7.0,
+  "nb_joueurs": 20,
+  "terrain": "Honneur",
+  "joueurs_ids": [],
+  "exercices": [
+   "rondo-4v2"
+  ],
+  "materiel": {}
+ }
+},
+{
+ "model": "training.seance",
+ "pk": 5,
+ "fields": {
+  "date": "2026-11-25",
+  "heure_debut": null,
+  "heure_fin": null,
+  "type_seance": "ENTRAINEMENT",
+  "objectif": "TACTIQUE",
+  "titre": "efefefeef",
+  "description": "kef,ef",
+  "rpe": 7.0,
+  "nb_joueurs": 2,
+  "terrain": "Honneur",
+  "joueurs_ids": [
+   23,
+   27
+  ],
+  "exercices": [],
+  "materiel": {
+   "mannequin": 1,
+   "chasuble": 10,
+   "coupelle": 20,
+   "plot": 16,
+   "ballon": 12,
+   "piquet": 8,
+   "mini_but": 3,
+   "grand_but": 2,
+   "echelle": 2,
+   "haie": 6,
+   "cerceau": 8
+  }
+ }
+},
+{
+ "model": "training.seance",
+ "pk": 6,
+ "fields": {
+  "date": "2026-11-23",
+  "heure_debut": null,
+  "heure_fin": null,
+  "type_seance": "ENTRAINEMENT",
+  "objectif": "TACTIQUE",
+  "titre": "gdgdgdg",
+  "description": "fdgdgdgdg",
+  "rpe": 7.0,
+  "nb_joueurs": 20,
+  "terrain": "Honneur",
+  "joueurs_ids": [],
+  "exercices": [],
+  "materiel": {
+   "ballon": 12,
+   "plot": 16,
+   "coupelle": 20
+  }
+ }
+},
+{
+ "model": "training.tableautactique",
+ "pk": 1,
+ "fields": {
+  "nom": "defaut",
+  "positions": {
+   "p1": [
+    84.27,
+    34.23
+   ],
+   "p2": [
+    96.55,
+    50.41
+   ],
+   "p4": [
+    72.77,
+    88.18
+   ],
+   "p5": [
+    48.29,
+    30.15
+   ],
+   "p3": [
+    63.08,
+    82.21
+   ],
+   "p6": [
+    33.64,
+    43.23
+   ],
+   "p8": [
+    63.56,
+    26.04
+   ],
+   "p10": [
+    73.65,
+    47.61
+   ],
+   "p7": [
+    66.39,
+    49.47
+   ],
+   "p9": [
+    84.82,
+    55.24
+   ],
+   "p11": [
+    86.09,
+    92.11
+   ],
+   "zone": [
+    49.88,
+    94.67
+   ]
+  },
+  "modifie_le": "2026-11-23T05:30:52.895Z"
+ }
+},
+{
+ "model": "training.tableautactique",
+ "pk": 2,
+ "fields": {
+  "nom": "equipe-433",
+  "positions": {
+   "p8": [
+    45.53,
+    52.3
+   ],
+   "p10": [
+    51.09,
+    23.18
+   ],
+   "p7": [
+    76.48,
+    28.72
+   ],
+   "p9": [
+    76.91,
+    55.7
+   ],
+   "p11": [
+    73.49,
+    78.39
+   ]
+  },
+  "modifie_le": "2026-11-23T12:38:39.523Z"
+ }
+}
+]

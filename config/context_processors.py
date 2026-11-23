@@ -8,12 +8,25 @@ def entete(request):
     coach_nom, coach_initiales = "Coach", "CO"
     role_court, role_libelle, admin = "Invité", "Non connecté", False
     user = getattr(request, "user", None)
+    a_dashboard = False
+    peut_voir_staff = False
+    peut_gerer_staff = False
+
     if user is not None and user.is_authenticated:
-        from utilisateurApp.roles import LIBELLES, est_admin
+        from utilisateurApp.roles import (
+            LIBELLES,
+            a_acces_dashboard,
+            est_admin,
+            peut_gerer_entraineurs,
+            peut_voir_entraineurs,
+        )
 
         coach_nom = f"{user.prenom} {user.nom}".strip() or user.email
         coach_initiales = f"{(user.prenom or ' ')[0]}{(user.nom or ' ')[0]}".strip().upper() or "CO"
         admin = est_admin(user)
+        a_dashboard = a_acces_dashboard(user)
+        peut_voir_staff = peut_voir_entraineurs(user)
+        peut_gerer_staff = peut_gerer_entraineurs(user)
         role_court = "Admin" if admin else user.get_role_display()
         role_libelle = LIBELLES.get("ADMIN" if admin else user.role, role_court)
 
@@ -46,5 +59,8 @@ def entete(request):
         "role_court": role_court,
         "role_libelle": role_libelle,
         "est_admin": admin,
+        "a_acces_dashboard": a_dashboard,
+        "peut_voir_entraineurs": peut_voir_staff,
+        "peut_gerer_entraineurs": peut_gerer_staff,
         "prochain_match": prochain_match,
     }
