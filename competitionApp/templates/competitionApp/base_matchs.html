@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}
+  {% block titre %}Matchs &amp; Compétitions{% endblock %} • YALLA
+{% endblock %}
+
+{% block nav_matchs %}active{% endblock %}
+{% block nav_matchs_current %} aria-current="page"{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/competitions.css' %}?v=1.0">
+{% endblock %}
+
+{% block content %}
+<nav class="comp-tabs" aria-label="Sous-navigation Compétitions">
+  <a href="{% url 'competitionApp:match_list' %}" class="comp-tab {% if menu_actif == 'matchs' or menu_actif == 'planifier' %}is-active{% endif %}">
+    {% icon "calendar" %}
+    <span>Calendrier des matchs</span>
+  </a>
+  <a href="{% url 'competitionApp:competition_list' %}" class="comp-tab {% if menu_actif == 'competitions' %}is-active{% endif %}">
+    {% icon "trophy" %}
+    <span>Compétitions</span>
+  </a>
+</nav>
+
+{% block contenu %}{% endblock %}
+{% endblock %}

@@ -1,0 +1,64 @@
+{% load footlab %}
+{# =================== LA TRINGLE (vestiaire en bois) =================== #}
+<section class="vr-scene" id="penderie" aria-labelledby="vr-title">
+  <div class="vr-room" aria-hidden="true">
+    <span class="vr-rod vr-rod-l"></span><span class="vr-rod vr-rod-r"></span>
+    <span class="vr-led"></span>
+    <span class="vr-bench"></span>
+  </div>
+
+  <header class="vr-top">
+    <div class="vr-heading">
+      <p class="vr-kicker">YALLA · Saison {{ saison }}</p>
+      <h2 class="vr-title" id="vr-title">Le vestiaire</h2>
+    </div>
+    <div class="vr-filter" role="group" aria-label="Filtrer la tringle par poste">
+      <button type="button" class="active" data-rail-poste="" aria-pressed="true">Tous<sup>{{ joueurs|length }}</sup></button>
+      {% for code, titre, css, js in rail %}
+      <button type="button" data-rail-poste="{{ code }}" aria-pressed="false"{% if not js %} disabled{% endif %}>{{ code }}<sup>{{ js|length }}</sup></button>
+      {% endfor %}
+    </div>
+  </header>
+
+  {% if joueurs %}
+  <div class="vr-rail" id="lr-rail">
+    <div class="vr-bar" aria-hidden="true"></div>
+    <div class="vr-track" id="lr-track">
+      {% for code, titre, css, js in rail %}{% if js %}
+      <div class="vr-group pos-{{ css }}" data-poste="{{ code }}">
+        <span class="vr-label">{{ titre }} <b>{{ js|length }}</b></span>
+        <div class="vr-shirts">
+          {% for j in js %}
+          <button type="button" class="shirt st-{{ j.statut_css }}" data-open-locker="{{ j.pk }}"
+                  data-num="{{ j.numero_maillot|default:'–' }}" data-nom="{{ j.prenom }} {{ j.nom }}"
+                  data-info="{{ j.get_poste_display }}{% if j.equipe %} · {{ j.equipe }}{% endif %}{% if j.statut != 'DISPONIBLE' %} · {{ j.get_statut_display }}{% endif %}"
+                  aria-label="Maillot {{ j.numero_maillot|default:'sans numéro' }}, {{ j.prenom }} {{ j.nom }} : le décrocher">
+            <span class="shirt-3d">{% include "joueurApp/_maillot.html" %}</span>
+            {% if j.statut != "DISPONIBLE" %}<span class="shirt-tag" aria-hidden="true"></span>{% endif %}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}{% endfor %}
+    </div>
+    <p class="vr-caption" id="lr-caption" aria-live="polite"><span class="cap-l1"><b class="cap-num"></b> <span class="cap-nom"></span></span><small class="cap-info"></small></p>
+  </div>
+  <p class="vr-hint">Survole un maillot · fais glisser la tringle · clique pour le décrocher</p>
+  {% else %}
+  <p class="vr-empty">La tringle est vide.{% if peut_modifier %} <a href="{% url 'joueurs:liste' %}?nouveau=1" data-open-drawer>Ajoute ton premier joueur</a>.{% endif %}</p>
+  {% endif %}
+
+  <a class="vr-next" href="#casiers" data-vue-casiers>
+    <span class="vr-next-k">Porte suivante<small>{{ joueurs|length }} casier{{ joueurs|length|pluralize }} à ouvrir</small></span>
+    <span class="vr-next-card">
+      <span class="mini-locker" aria-hidden="true"><i></i><i></i></span>
+      <b>{% icon "locker" %}Les casiers</b><em aria-hidden="true">↗</em>
+    </span>
+  </a>
+
+  <div class="vr-ticker" aria-hidden="true">
+    <div class="vr-ticker-in">
+      {% for _ in "12" %}<span>YALLA FootLab</span><span>Saison {{ saison }}</span><span>{{ joueurs|length }} maillot{{ joueurs|length|pluralize }} · un vestiaire</span><span>Radès</span>{% endfor %}
+    </div>
+  </div>
+</section>

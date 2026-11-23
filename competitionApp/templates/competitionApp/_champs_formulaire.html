@@ -1,0 +1,67 @@
+{% load static footlab %}
+
+{% if form.non_field_errors %}
+  <div class="form-alert" role="alert" style="margin-bottom: 22px;">
+    {% icon "alert" %}
+    <div>
+      {% for error in form.non_field_errors %}
+        <div>{{ error }}</div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+{% for field in form %}
+  <div class="field-single" id="field-wrap-{{ field.name }}">
+    <label class="form-label" for="{{ field.id_for_label }}">
+      {{ field.label }}
+      {% if field.field.required %}<span class="req">*</span>{% endif %}
+    </label>
+
+    {% if field.field.widget.input_type == "checkbox" %}
+      <div class="checkbox-item">
+        {{ field }}
+        <span>{{ field.label }}</span>
+      </div>
+    {% elif field.name == "equipes" %}
+      <div class="checkbox-grid">
+        {% for choice in field %}
+          <label class="checkbox-item">
+            {{ choice.tag }}
+            <span>{{ choice.choice_label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="input-wrap">
+        {% if "date" in field.name %}
+          {% icon "calendar" %}
+        {% elif field.name == "competition" %}
+          {% icon "trophy" %}
+        {% elif field.name == "lieu" %}
+          {% icon "map-pin" %}
+        {% elif "equipe" in field.name %}
+          {% icon "shield" %}
+        {% elif "joueur" in field.name %}
+          {% icon "user" %}
+        {% elif "minute" in field.name %}
+          {% icon "timer" %}
+        {% elif field.name == "type_evenement" or field.name == "statut" %}
+          {% icon "activity" %}
+        {% elif field.name == "photo" %}
+          {% icon "camera" %}
+        {% endif %}
+
+        {{ field }}
+      </div>
+    {% endif %}
+
+    {% if field.help_text %}
+      <span class="form-help">{{ field.help_text }}</span>
+    {% endif %}
+
+    {% for error in field.errors %}
+      <span class="form-error">{% icon "alert" %} {{ error }}</span>
+    {% endfor %}
+  </div>
+{% endfor %}

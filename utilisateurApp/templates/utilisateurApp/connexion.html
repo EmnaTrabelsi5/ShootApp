@@ -1,0 +1,95 @@
+{% load static footlab %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Connexion · YALLA</title>
+  <link rel="icon" href="{% static 'img/yalla-logo.svg' %}">
+  <link rel="stylesheet" href="{% static 'css/connexion.css' %}">
+</head>
+<body class="cx">
+  <main class="cx-wrap">
+    {# ---------- Photo de Radès ---------- #}
+    <section class="cx-photo" aria-hidden="true">
+      <img src="{% static 'rades/nuit.jpg' %}" alt="">
+      <a class="cx-brand" href="{% url 'accueil' %}" tabindex="-1">
+        <img src="{% static 'img/yalla-logo.svg' %}" alt="" width="44" height="44">
+        <span>YALLA</span>
+      </a>
+      <div class="cx-photo-txt">
+        <p class="cx-slogan">Une équipe,<br><b>cinq métiers.</b></p>
+        <ul class="cx-roles">
+          <li style="--c:#c8102e">Président</li>
+          <li style="--c:#22c55e">Entraîneur</li>
+          <li style="--c:#f5b800">Joueurs</li>
+          <li style="--c:#3b82f6">Scouts</li>
+          <li style="--c:#a855f7">Staff</li>
+        </ul>
+      </div>
+    </section>
+
+    {# ---------- Formulaire ---------- #}
+    <section class="cx-panel">
+      <a class="cx-back" href="{% url 'accueil' %}">← Retour à l'accueil</a>
+
+      <div class="cx-card">
+        <p class="cx-kicker">Espace club</p>
+        <h1 class="cx-title">Connexion</h1>
+        <p class="cx-sub">Entre ton identifiant pour accéder au vestiaire.</p>
+
+        {% if form.non_field_errors %}
+        <p class="cx-alert" role="alert">{% icon "shield" %}<span>{{ form.non_field_errors.0 }}</span></p>
+        {% endif %}
+
+        <form method="post" action="{% url 'comptes:connexion' %}" class="cx-form" novalidate>
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ next }}">
+          <label class="cx-field">
+            <span>{{ form.username.label }}</span>
+            <span class="cx-input">{% icon "user" %}{{ form.username }}</span>
+          </label>
+          <label class="cx-field">
+            <span>{{ form.password.label }}</span>
+            <span class="cx-input">{% icon "lock" %}{{ form.password }}
+              <button type="button" class="cx-eye" id="cx-eye" aria-label="Afficher le mot de passe" aria-pressed="false">{% icon "eye" %}</button>
+            </span>
+          </label>
+          <button class="cx-submit" type="submit"><span>Entrer</span> <span aria-hidden="true">→</span></button>
+        </form>
+
+        {% if comptes_test %}
+        <div class="cx-test">
+          <p>Comptes de test <small>identifiant = mot de passe</small></p>
+          <div class="cx-chips">
+            {% for ident, libelle in comptes_test %}
+            <button type="button" data-compte="{{ ident }}" title="Remplir avec {{ ident }}">
+              <b>{{ ident }}</b><small>{{ libelle }}</small>
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const u = document.getElementById("id_username");
+      const p = document.getElementById("id_password");
+      const eye = document.getElementById("cx-eye");
+      eye.addEventListener("click", () => {
+        const voir = p.type === "password";
+        p.type = voir ? "text" : "password";
+        eye.setAttribute("aria-pressed", String(voir));
+        eye.setAttribute("aria-label", voir ? "Masquer le mot de passe" : "Afficher le mot de passe");
+      });
+      document.querySelectorAll("[data-compte]").forEach((b) => b.addEventListener("click", () => {
+        u.value = p.value = b.dataset.compte;
+        document.querySelectorAll("[data-compte]").forEach((x) => x.classList.toggle("is-on", x === b));
+        p.focus();
+      }));
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+/* YALLA · Compte connecté (bandeau) + tableau de bord admin */
+.tt-logout { display: contents; }
+.top-tags .tt-logout button, .top-tags .tt-login {
+  display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 11px; border-radius: 8px; white-space: nowrap;
+  font-family: var(--display); font-weight: 800; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; text-decoration: none;
+  color: #fff; background: rgba(0,0,0,.22); border: 1.5px solid rgba(255,255,255,.3); cursor: pointer;
+  transition: background .2s var(--ease), color .2s var(--ease), border-color .2s var(--ease);
+}
+.top-tags .tt-logout button:hover, .top-tags .tt-login:hover { background: var(--graff-yellow); border-color: var(--graff-yellow); color: var(--graff-navy); }
+.top-tags .tt-logout svg, .top-tags .tt-login svg { width: 15px; height: 15px; stroke-width: 2.2; }
+.top-tags .tt-logout button { width: 34px; padding: 0; justify-content: center; }
+.top-tags .tt-logout span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 1480px) { .top-tags > .tt-date { display: none; } }
+/* Pages sans vestiaire.js : surlignage fixe du lien actif */
+.page-simple .rail-link.active { background: var(--lime); box-shadow: 0 10px 30px -8px rgba(212,255,58,.55); }
+button.act { border: 0; font: inherit; cursor: pointer; }
+
+/* Tableau de bord (à venir) */
+.dash { display: grid; gap: 22px; }
+.dash-hero { padding: 34px; border-radius: 24px; color: #fff; background: radial-gradient(500px 260px at 90% 0%, rgba(212,255,58,.28), transparent 70%), linear-gradient(135deg, #064326, #0b6b3a); box-shadow: var(--shadow); }
+.dash-hero .eyebrow { color: var(--lime); }
+.dash-hero h1 { margin-top: 6px; font-family: var(--display); font-weight: 800; font-size: clamp(44px, 6vw, 72px); line-height: .95; text-transform: uppercase; }
+.dash-hero p { max-width: 38rem; margin-top: 12px; color: rgba(255,255,255,.8); }
+.dash-soon { display: inline-block; margin-top: 18px; padding: 5px 12px; border-radius: 999px; font-family: var(--display); font-weight: 800; letter-spacing: 1px; text-transform: uppercase; background: var(--yellow); color: #111; transform: rotate(-2deg); }
+.dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 16px; }
+.dash-card { display: flex; flex-direction: column; gap: 8px; padding: 22px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; color: var(--text); transition: transform .25s var(--ease), border-color .25s var(--ease); }
+a.dash-card:hover { transform: translateY(-3px); border-color: var(--ink, var(--green)); }
+.dash-card svg { width: 26px; height: 26px; color: var(--ink, var(--green)); stroke-width: 2; }
+.dash-card b { font-family: var(--display); font-weight: 800; font-size: 22px; text-transform: uppercase; letter-spacing: .5px; }
+.dash-card small { color: var(--muted); }
+.dash-card.is-soon { opacity: .6; }

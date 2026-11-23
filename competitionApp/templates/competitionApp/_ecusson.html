@@ -1,0 +1,5 @@
+{% if equipe.logo %}
+  <img class="ecusson {% if size == 'lg' %}ecusson-lg{% endif %}" src="{{ equipe.logo.url }}" alt="Logo {{ equipe.nom }}">
+{% else %}
+  <span class="ecusson {% if size == 'lg' %}ecusson-lg{% endif %}" title="{{ equipe.nom }}">{{ equipe.nom|slice:":2"|upper }}</span>
+{% endif %}

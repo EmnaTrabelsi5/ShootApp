@@ -1,0 +1,178 @@
+{% load static %}<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YALLA · Une équipe, cinq métiers</title>
+  <meta name="description" content="YALLA FootLab Pro : président, entraîneur, joueurs, scouts et staff, réunis dans un seul outil. Au stade de Radès.">
+  <link rel="icon" href="{% static 'img/yalla-logo.svg' %}">
+  <link rel="preload" as="image" href="{% static 'rades/hero.jpg' %}">
+  <link rel="stylesheet" href="{% static 'css/rades.css' %}">
+  <script type="importmap">{ "imports": { "three": "{% static 'vendor/three.module.min.js' %}" } }</script>
+</head>
+<body>
+  <a class="skip" href="#contenu">Aller au contenu</a>
+
+  <!-- Navigation -->
+  <header class="nav" id="nav">
+    <a class="brand" href="#hero">
+      <img src="{% static 'img/yalla-logo.svg' %}" alt="" width="34" height="34">
+      <span class="brand-txt"><b>YALLA</b><small>FootLab Pro</small></span>
+    </a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#stade">Radès</a>
+      <a href="#equipe">L'équipe</a>
+      <a href="#circuit">Le circuit</a>
+    </nav>
+    {% if user.is_authenticated %}
+    <div class="nav-user">
+      <a class="nav-login" href="{% if est_admin %}{% url 'comptes:dashboard' %}{% else %}{% url 'joueurs:liste' %}{% endif %}" title="Mon espace">
+        <span class="nav-av" aria-hidden="true">{{ coach_initiales }}</span><span class="nav-who"><b>{{ user.prenom }}</b><small>{{ role_court }}</small></span>
+      </a>
+      <form method="post" action="{% url 'comptes:deconnexion' %}">{% csrf_token %}
+        <button class="nav-out" type="submit" aria-label="Se déconnecter" title="Se déconnecter">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+        </button>
+      </form>
+    </div>
+    {% else %}
+    <a class="nav-cta" href="{% url 'comptes:connexion' %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Connexion</span>
+    </a>
+    {% endif %}
+    <button class="nav-burger" id="nav-burger" type="button" aria-expanded="false" aria-controls="menu" aria-label="Ouvrir le menu"><i></i><i></i></button>
+  </header>
+
+  <div class="menu" id="menu" hidden>
+    <nav aria-label="Menu mobile">
+      <a href="#stade">Radès</a>
+      <a href="#equipe">L'équipe</a>
+      <a href="#circuit">Le circuit</a>
+      {% if not user.is_authenticated %}<a href="{% url 'comptes:connexion' %}">Connexion</a>{% endif %}
+    </nav>
+  </div>
+
+  <main id="contenu" tabindex="-1">
+
+    <!-- Hero : photo du stade -->
+    <section class="hero" id="hero">
+      <div class="hero-media">
+        <img src="{% static 'rades/hero.jpg' %}" alt="Le stade olympique de Radès vu des tribunes : pelouse, piste rouge et toit blanc" class="hero-img">
+        <div class="relief" id="hero-3d" data-src="{% static 'rades/hero.jpg' %}" aria-hidden="true"></div>
+      </div>
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-inner">
+        <p class="kicker"><span class="dot" aria-hidden="true"></span> Stade Hammadi-Agrebi · Radès, Tunisie</p>
+        <h1 class="hero-title">
+          <span class="ln"><span>Une équipe,</span></span>
+          <span class="ln"><span>cinq métiers.</span></span>
+        </h1>
+        <p class="hero-lead">Président, entraîneur, joueurs, scouts et staff. Dans FootLab, chacun a sa place, ses outils et ses données, comme sur la pelouse de Radès.</p>
+      </div>
+      <a class="hero-scroll" href="#stade" aria-label="Aller à la section Radès"><i></i></a>
+    </section>
+
+    <!-- Le stade -->
+    <section class="stade" id="stade">
+      <div class="wrap stade-grid">
+        <div>
+          <p class="eyebrow">Notre terrain</p>
+          <h2 class="h2 reveal-words">Radès, le plus grand stade de Tunisie.</h2>
+        </div>
+        <div class="stade-txt">
+          <p class="reveal">Inauguré en 2001 pour les Jeux méditerranéens, le stade olympique Hammadi-Agrebi a accueilli la finale de la CAN 2004 remportée par la Tunisie. C'est ici que nous avons posé le décor de FootLab.</p>
+          <ul class="facts">
+            <li><b data-count="60000">60 000</b><span>places</span></li>
+            <li><b data-count="2001">2001</b><span>inauguration</span></li>
+            <li><b data-count="2004">2004</b><span>finale de la CAN</span></li>
+          </ul>
+        </div>
+      </div>
+      <div class="strip" aria-hidden="true">
+        <div class="ring" id="ring" data-photos='["{% static 'rades/club.jpg' %}","{% static 'rades/coach.jpg' %}","{% static 'rades/scouts.jpg' %}","{% static 'rades/joueurs.jpg' %}","{% static 'rades/nuit.jpg' %}","{% static 'rades/staff.jpg' %}","{% static 'rades/hero.jpg' %}"]'>
+          <p class="ring-hint"><span>360°</span> Faites glisser ou défilez pour faire le tour du stade</p>
+        </div>
+        <div class="strip-track">
+          <img src="{% static 'rades/club.jpg' %}" alt="">
+          <img src="{% static 'rades/coach.jpg' %}" alt="">
+          <img src="{% static 'rades/scouts.jpg' %}" alt="">
+          <img src="{% static 'rades/joueurs.jpg' %}" alt="">
+          <img src="{% static 'rades/nuit.jpg' %}" alt="">
+          <img src="{% static 'rades/staff.jpg' %}" alt="">
+        </div>
+      </div>
+    </section>
+
+    <!-- L'équipe : vue d'ensemble -->
+    <section class="org" id="equipe">
+      <div class="wrap">
+        <p class="eyebrow">Les composants d'une équipe</p>
+        <h2 class="h2 reveal-words">Qui fait quoi dans le projet.</h2>
+        <p class="lead reveal">Chaque rôle est un profil utilisateur de FootLab. Tous héritent du même compte (nom, e-mail, photo) et ajoutent leurs propres responsabilités.</p>
+
+        <ul class="org-map">
+          <li class="org-node n-president"><div class="org-card"><span class="o-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 8l4.5 4L12 5l4.5 7L21 8l-2 11H5z"/></svg></span><b>Président</b><small><strong>{{ c.presidents }}</strong> · dirige le club</small></div></li>
+          <li class="org-node n-entraineur"><div class="org-card"><span class="o-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2.5h6V4M8.5 10.5l2.5 2.5 4.5-4.5M8.5 17h7"/></svg></span><b>Entraîneur</b><small><strong>{{ c.entraineurs }}</strong> · prépare l'équipe</small></div></li>
+          <li class="org-node n-joueurs"><div class="org-card"><span class="o-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 3l-5 3 2 5 2-1v11h10V10l2 1 2-5-5-3c-.5 1.7-2 3-4 3s-3.5-1.3-4-3z"/></svg></span><b>Joueurs</b><small><strong>{{ c.joueurs }}</strong> · jouent les matchs</small></div></li>
+          <li class="org-node n-scouts"><div class="org-card"><span class="o-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="6.5" cy="15.5" r="3.5"/><circle cx="17.5" cy="15.5" r="3.5"/><path d="M10 15h4M4 13l2-8h3l1 6M20 13l-2-8h-3l-1 6"/></svg></span><b>Scouts</b><small><strong>{{ c.scouts }}</strong> · repèrent les talents</small></div></li>
+          <li class="org-node n-staff"><div class="org-card"><span class="o-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V4h6v3M12 10.5v6M9 13.5h6"/></svg></span><b>Staff</b><small><strong>{{ c.staff }}</strong> · fait tourner le club</small></div></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Le circuit -->
+    <section class="circuit" id="circuit">
+      <div class="wrap">
+        <p class="eyebrow">Le circuit</p>
+        <h2 class="h2 reveal-words">Comment ils travaillent ensemble.</h2>
+        <ol class="flow">
+          <li><span class="f-who s-scouts">Scout</span><p>Observe un joueur et rédige un <b>rapport de scouting</b>.</p></li>
+          <li><span class="f-who s-scouts">Scout</span><p>Propose une <b>recommandation</b> avec un score de compatibilité.</p></li>
+          <li><span class="f-who s-president">Président</span><p>Accepte ou rejette, puis le joueur rejoint l'<b>équipe</b>.</p></li>
+          <li><span class="f-who s-entraineur">Entraîneur</span><p>Planifie les <b>entraînements</b> et prépare le match.</p></li>
+          <li><span class="f-who s-joueurs">Joueur</span><p>Joue, et ses <b>performances</b> sont enregistrées.</p></li>
+          <li><span class="f-who s-staff">Staff</span><p>Accompagne le groupe avant, pendant et après le match.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta" id="rejoindre">
+      <div class="cta-media"><img src="{% static 'rades/nuit.jpg' %}" alt="" loading="lazy"><div class="relief" id="cta-3d" data-src="{% static 'rades/nuit.jpg' %}" aria-hidden="true"></div></div>
+      <div class="cta-shade" aria-hidden="true"></div>
+      <div class="wrap cta-inner">
+        <h2 class="cta-title reveal-words">Le vestiaire est ouvert.</h2>
+        <p class="reveal">Commencez par l'effectif : ajoutez vos joueurs, leurs postes et leurs statuts.</p>
+        <a class="btn btn-action btn-lg" href="{% url 'joueurs:liste' %}">Entrer dans le vestiaire <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="wrap foot-grid">
+      <div class="foot-brand"><img src="{% static 'img/yalla-logo.svg' %}" alt="" width="28" height="28"><span>© 2026 YALLA · FootLab Pro</span></div>
+      <details class="credits">
+        <summary>Crédits photos (Wikimedia Commons)</summary>
+        <ul>
+          <li>Tribunes : <a href="https://commons.wikimedia.org/wiki/File:Rad%C3%A8s_Olympic_stadium.jpg" target="_blank" rel="noopener">Nasreddine Nas'</a>, CC BY-SA 4.0</li>
+          <li>Façade : <a href="https://commons.wikimedia.org/wiki/File:StadeRadesNov2011.jpg" target="_blank" rel="noopener">Citizen59</a>, CC BY-SA 3.0</li>
+          <li>Pelouse de nuit : <a href="https://commons.wikimedia.org/wiki/File:Tunisie_-_Pays-Bas_(1-1)_in_Rad%C3%A8s_stadium.jpg" target="_blank" rel="noopener">DrFO.Jr.Tn</a>, CC BY 3.0</li>
+          <li>Match : <a href="https://commons.wikimedia.org/wiki/File:Stade_de_Rad%C3%A9s_2017_5.jpg" target="_blank" rel="noopener">Walid1992soccer</a>, CC BY-SA 4.0</li>
+          <li>Tribune et drapeau : <a href="https://commons.wikimedia.org/wiki/File:STADE_DE_RADES.jpg" target="_blank" rel="noopener">khaled abdelmoumen</a>, CC BY 2.0</li>
+          <li>Tableau d'affichage : <a href="https://commons.wikimedia.org/wiki/File:Rad%C3%A8s_stadium_scoreboard.jpg" target="_blank" rel="noopener">Citizen59</a>, CC BY-SA 2.0</li>
+          <li>Stade illuminé : <a href="https://commons.wikimedia.org/wiki/File:Tunisia_-_Netherlands_(Stade_de_Rad%C3%A8s)_2.jpg" target="_blank" rel="noopener">DrFO.Jr.Tn</a>, CC BY-SA 4.0</li>
+        </ul>
+        <p>Photos recadrées et compressées. Licences : <a href="https://creativecommons.org/licenses/" target="_blank" rel="noopener">creativecommons.org/licenses</a>.</p>
+      </details>
+      <a class="foot-top" href="#hero">Haut de page ↑</a>
+    </div>
+  </footer>
+
+  <script src="{% static 'vendor/gsap.min.js' %}"></script>
+  <script src="{% static 'vendor/ScrollTrigger.min.js' %}"></script>
+  <script src="{% static 'vendor/lenis.min.js' %}"></script>
+  <script src="{% static 'js/rades.js' %}" defer></script>
+  <script type="module" src="{% static 'js/rades3d.js' %}"></script>
+</body>
+</html>

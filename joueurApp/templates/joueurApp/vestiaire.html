@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Vestiaire & Effectif • YALLA{% endblock %}
+{% block crumb %}Vestiaire &amp; Effectif{% endblock %}
+{% block nav_vestiaire %}active{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/penderie.css' %}?v=3d7">{% endblock %}
+
+{% block content %}
+{# =================== HERO =================== #}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>Saison {{ saison }}</p>
+    <h1 class="hero-title" data-split>Vestiaire<br><span class="hero-title-2">&amp; Effectif</span></h1>
+    <p class="hero-sub">Ton groupe en un coup d'œil : postes, numéros et état physique de chaque joueur.</p>
+    <div class="hero-actions">
+      {% if peut_modifier %}
+      <a class="btn btn-primary magnetic" href="{% url 'joueurs:liste' %}?nouveau=1" data-open-drawer>
+        <span class="btn-ic">{% icon "plus" %}</span><span>Ajouter un joueur</span>
+      </a>
+      {% endif %}
+    </div>
+  </div>
+
+</section>
+
+{% include "joueurApp/_penderie.html" %}
+{% include "joueurApp/_casiers.html" with groupes=rail sur_place=True %}
+
+{# =================== LISTE DES JOUEURS =================== #}
+<section class="cards-view" id="view-cards" aria-labelledby="liste-titre">
+  <h2 class="list-title" id="liste-titre">L'effectif <em>{{ joueurs|length }}</em></h2>
+  <div class="grid" id="grid">
+    {% for j in joueurs %}
+    <article class="pcard pos-{{ j.poste_css }} st-{{ j.statut_css }}" id="joueur-{{ j.pk }}"
+             data-id="{{ j.pk }}" data-poste="{{ j.poste }}" data-statut="{{ j.statut }}"
+             data-search="{{ j.prenom|lower }} {{ j.nom|lower }} {{ j.nationalite|lower }} {{ j.numero_maillot|default:'' }}"
+             {% if not j.visible %}hidden{% endif %}>
+      <div class="pcard-inner">
+        <span class="pcard-glare" aria-hidden="true"></span>
+        <header class="pcard-top">
+          <span class="pcard-num">{{ j.numero_maillot|default:"–" }}</span>
+          <span class="pcard-pos">{{ j.poste }}</span>
+        </header>
+        <div class="pcard-avatar"{% if j.photo %} style="background-image:url('{{ j.photo.url }}')"{% endif %}><span>{{ j.initiales }}</span></div>
+        <span class="pcard-status"><i></i>{{ j.get_statut_display }}</span>
+        <h3 class="pcard-name"><span>{{ j.prenom }}</span>{{ j.nom }}</h3>
+        <ul class="pcard-stats">
+          <li><b>{% if j.age is not None %}{{ j.age }}{% else %}–{% endif %}</b><small>Âge</small></li>
+          <li><b>{{ j.taille_cm|default:"–" }}</b><small>cm</small></li>
+          <li><b>{% if j.poids_kg %}{{ j.poids_kg|floatformat:"0" }}{% else %}–{% endif %}</b><small>kg</small></li>
+          <li><b>{% if j.pied_fort == "DROIT" %}D{% elif j.pied_fort == "GAUCHE" %}G{% elif j.pied_fort == "AMBI" %}D/G{% else %}–{% endif %}</b><small>Pied</small></li>
+        </ul>
+        <p class="pcard-meta">{% icon "flag" %}<span>{{ j.nationalite|default:"Nationalité ?" }}</span><span class="sep">·</span><span>{{ j.equipe|default:"Sans équipe" }}</span></p>
+        <div class="pcard-actions">
+          {% if peut_modifier %}
+          <a class="act act-edit" href="{% url 'joueurs:modifier' j.pk %}" data-edit="{{ j.pk }}">{% icon "pencil" %}<span>Modifier</span></a>
+          <a class="act act-del" href="{% url 'joueurs:supprimer' j.pk %}" data-delete="{{ j.pk }}" data-nom="{{ j }}" aria-label="Supprimer {{ j }}">{% icon "trash" %}</a>
+          {% else %}
+          <button type="button" class="act act-edit" data-open-locker="{{ j.pk }}">{% icon "locker" %}<span>Voir son casier</span></button>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+    {% endfor %}
+
+    {% if peut_modifier %}
+    <a class="pcard pcard-add" href="{% url 'joueurs:liste' %}?nouveau=1" data-open-drawer>
+      <span class="add-ic">{% icon "plus" %}</span>
+      <strong>Nouvelle recrue</strong>
+      <small>Ajouter un joueur au vestiaire</small>
+    </a>
+    {% endif %}
+  </div>
+
+</section>
+
+{# =================== PANNEAU AJOUT / MODIFICATION =================== #}
+<div class="drawer-wrap{% if form_ouvert %} is-open{% endif %}" id="drawer" data-mode="{% if joueur_edit %}edit{% else %}add{% endif %}"
+     data-add-action="{% url 'joueurs:ajouter' %}" data-list-url="{% url 'joueurs:liste' %}"{% if not form_ouvert %} hidden{% endif %}>
+  <div class="drawer-backdrop" data-close></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+    <header class="drawer-head">
+      <div>
+        <p class="eyebrow" id="drawer-eyebrow">{% if joueur_edit %}Fiche joueur{% else %}Nouvelle recrue{% endif %}</p>
+        <h2 id="drawer-title">{% if joueur_edit %}Modifier {{ joueur_edit }}{% else %}Ajouter un joueur{% endif %}</h2>
+      </div>
+      <a class="icon-btn" href="{% url 'joueurs:liste' %}" data-close aria-label="Fermer">{% icon "x" %}</a>
+    </header>
+
+    <form id="form-joueur" class="drawer-body" method="post" action="{{ form_action }}" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+
+      <div class="preview pos-{% if form.poste.value %}{{ postes_css|get_item:form.poste.value }}{% else %}milieu{% endif %}" id="preview">
+        <label class="preview-photo" title="Choisir une photo">
+          <span class="preview-av" id="pv-av"{% if joueur_edit.photo %} style="background-image:url('{{ joueur_edit.photo.url }}')"{% endif %}><span id="pv-ini">{% if joueur_edit %}{{ joueur_edit.initiales }}{% else %}?{% endif %}</span></span>
+          <span class="preview-cam">{% icon "camera" %}</span>
+          {{ form.photo }}
+        </label>
+        <div class="preview-txt">
+          <span class="preview-num" id="pv-num">{{ form.numero_maillot.value|default:"#" }}</span>
+          <strong id="pv-name">{% if form.prenom.value or form.nom.value %}{{ form.prenom.value|default:"" }} {{ form.nom.value|default:"" }}{% else %}Nom du joueur{% endif %}</strong>
+          <span class="preview-tags"><span class="tag-pos" id="pv-pos"></span><span class="tag-st" id="pv-st"></span></span>
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="form-alert">{% icon "alert" %}<span>{% for e in form.non_field_errors %}{{ e }} {% endfor %}</span></div>
+      {% elif form.errors %}
+        <div class="form-alert">{% icon "alert" %}<span>Corrige les champs signalés avant d'enregistrer.</span></div>
+      {% endif %}
+
+      <fieldset class="fs">
+        <legend>Poste</legend>
+        <div class="pills pills-4{% if form.poste.errors %} has-error{% endif %}">
+          {% for radio in form.poste %}
+            <label class="pill pos-{{ postes_css|get_item:radio.data.value }}">{{ radio.tag }}<span><i></i>{{ radio.choice_label }}</span></label>
+          {% endfor %}
+        </div>
+        {% for e in form.poste.errors %}<span class="err">{{ e }}</span>{% endfor %}
+      </fieldset>
+
+      <fieldset class="fs">
+        <legend>État physique</legend>
+        <div class="pills pills-3">
+          {% for radio in form.statut %}
+            <label class="pill st-{{ radio.data.value|lower }}">{{ radio.tag }}<span><i></i>{{ radio.choice_label }}</span></label>
+          {% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="fs">
+        <legend>Identité</legend>
+        <div class="fields">
+          {% for name in "prenom nom email telephone date_naissance nationalite"|split %}{% with field=form|field:name %}
+          <div class="fld{% if field.errors %} has-error{% endif %}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {% for e in field.errors %}<span class="err">{{ e }}</span>{% endfor %}
+          </div>
+          {% endwith %}{% endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="fs">
+        <legend>Profil sportif</legend>
+        <div class="fields">
+          {% for name in "numero_maillot pied_fort taille_cm poids_kg equipe"|split %}{% with field=form|field:name %}
+          <div class="fld{% if field.errors %} has-error{% endif %}{% if name == 'equipe' %} span-2{% endif %}">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+            {% for e in field.errors %}<span class="err">{{ e }}</span>{% endfor %}
+          </div>
+          {% endwith %}{% endfor %}
+        </div>
+        {% for e in form.photo.errors %}<span class="err">{{ e }}</span>{% endfor %}
+      </fieldset>
+    </form>
+
+    <footer class="drawer-foot">
+      <a class="btn btn-ghost" href="{% url 'joueurs:liste' %}" data-close>Annuler</a>
+      <button class="btn btn-primary" type="submit" form="form-joueur" id="drawer-submit">
+        <span class="btn-ic">{% icon "check" %}</span><span id="drawer-submit-txt">{% if joueur_edit %}Enregistrer{% else %}Ajouter au vestiaire{% endif %}</span>
+      </button>
+    </footer>
+  </aside>
+</div>
+
+{# =================== CONFIRMATION SUPPRESSION =================== #}
+<div class="dialog-wrap{% if joueur_suppr %} is-open{% endif %}" id="confirm" data-list-url="{% url 'joueurs:liste' %}"{% if not joueur_suppr %} hidden{% endif %}>
+  <div class="drawer-backdrop" data-close></div>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title">
+    <div class="dialog-ic">{% icon "trash" 26 %}</div>
+    <h2 id="confirm-title">Retirer <span id="confirm-nom">{{ joueur_suppr|default:"ce joueur" }}</span> ?</h2>
+    <p>Sa fiche et ses performances enregistrées seront supprimées définitivement.</p>
+    <form method="post" id="form-suppr" action="{% if joueur_suppr %}{% url 'joueurs:supprimer' joueur_suppr.pk %}{% endif %}">
+      {% csrf_token %}
+      <div class="dialog-actions">
+        <a class="btn btn-ghost" href="{% url 'joueurs:liste' %}" data-close>Annuler</a>
+        <button class="btn btn-danger" type="submit">{% icon "trash" %}<span>Supprimer</span></button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% include "joueurApp/_fiche.html" %}
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/vestiaire.js' %}?v=3d7"></script><script src="{% static 'js/penderie.js' %}?v=3d7"></script><script type="importmap">{ "imports": { "three": "{% static 'vendor/three.module.min.js' %}" } }</script><script type="module" src="{% static 'js/maillots3d.js' %}?v=3d7"></script>{% endblock %}

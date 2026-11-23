@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Les casiers • YALLA{% endblock %}
+{% block nav_vestiaire %}active{% endblock %}
+{% block body_class %}page-simple{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/penderie.css' %}?v=3d7">{% endblock %}
+
+{% block content %}
+{% include "joueurApp/_casiers.html" %}
+
+{% include "joueurApp/_fiche.html" %}
+{% endblock %}
+
+{% block extra_js %}<script src="{% static 'js/penderie.js' %}?v=3d7"></script><script type="importmap">{ "imports": { "three": "{% static 'vendor/three.module.min.js' %}" } }</script><script type="module" src="{% static 'js/maillots3d.js' %}?v=3d7"></script>{% endblock %}
