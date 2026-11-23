@@ -1,13 +1,55 @@
 from django.db import models
+from django.utils import timezone
 
 from utilisateurApp.models import Utilisateur
 
 
 class Entraineur(Utilisateur):
-    type = models.CharField(max_length=50, blank=True)
-    specialite = models.CharField(max_length=100, blank=True)
-    # "role" existe déjà dans Utilisateur -> renommé pour éviter le conflit
-    fonction = models.CharField(max_length=50, blank=True, help_text="ex : principal, adjoint")
+    class TypeEntraineur(models.TextChoices):
+        PRINCIPAL = "PRINCIPAL", "Principal"
+        ADJOINT = "ADJOINT", "Adjoint"
+        PREPARATEUR_PHYSIQUE = "PREPARATEUR_PHYSIQUE", "Préparateur Physique"
+        GARDIENS = "GARDIENS", "Entraîneur des Gardiens"
+        FORMATION = "FORMATION", "Formation / Jeunes"
+        ANALYSTE = "ANALYSTE", "Analyste Vidéo & Données"
+        PERFORMANCE = "PERFORMANCE", "Responsable Performance"
+        SPECIFIQUE = "SPECIFIQUE", "Spécifique"
+
+    class Fonction(models.TextChoices):
+        PRINCIPAL = "PRINCIPAL", "Principal"
+        ADJOINT = "ADJOINT", "Adjoint"
+        RESPONSABLE_TECHNIQUE = "RESPONSABLE_TECHNIQUE", "Responsable Technique"
+        COORDINATEUR = "COORDINATEUR", "Coordinateur"
+        PREPARATEUR = "PREPARATEUR", "Préparateur"
+        ASSISTANT_STAGIAIRE = "ASSISTANT_STAGIAIRE", "Assistant / Stagiaire"
+
+    class Specialite(models.TextChoices):
+        TACTIQUE = "TACTIQUE", "Tactique & Stratégie"
+        PREPARATION_PHYSIQUE = "PREPARATION_PHYSIQUE", "Préparation Physique & Athlétique"
+        GARDIENS = "GARDIENS", "Gardiens"
+        DEVELOPPEMENT_TECHNIQUE = "DEVELOPPEMENT_TECHNIQUE", "Développement Technique individuel"
+        ANALYSE_VIDEO = "ANALYSE_VIDEO", "Analyse Vidéo & Data"
+        PREPARATION_MENTALE = "PREPARATION_MENTALE", "Préparation Mentale"
+        REATHLETISATION = "REATHLETISATION", "Réathlétisation & Prévention"
+        COUPS_DE_PIED_ARRETES = "COUPS_DE_PIED_ARRETES", "Coups de pied arrêtés"
+        POLYVALENT = "POLYVALENT", "Polyvalent"
+
+    type = models.CharField(
+        max_length=50,
+        choices=TypeEntraineur.choices,
+        blank=True,
+    )
+    specialite = models.CharField(
+        max_length=100,
+        choices=Specialite.choices,
+        blank=True,
+    )
+    fonction = models.CharField(
+        max_length=50,
+        choices=Fonction.choices,
+        blank=True,
+        help_text="ex : principal, adjoint",
+    )
     # Entraineur 1..1 --avoir-- 1..1 Equipe
     equipe = models.OneToOneField(
         "equipeApp.Equipe",
@@ -23,6 +65,20 @@ class Entraineur(Utilisateur):
     def save(self, *args, **kwargs):
         self.role = Utilisateur.Role.ENTRAINEUR
         super().save(*args, **kwargs)
+
+    @property
+    def initiales(self):
+        p = (self.prenom or "")[:1].upper()
+        n = (self.nom or "")[:1].upper()
+        return f"{p}{n}" or "CO"
+
+    @property
+    def age(self):
+        if not self.date_naissance:
+            return None
+        today = timezone.localdate()
+        dob = self.date_naissance
+        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
 
 class Entrainement(models.Model):

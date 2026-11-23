@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}
+  {% if mode == "creer" %}Ajouter un entraîneur{% else %}Modifier {{ entraineur.prenom }} {{ entraineur.nom }}{% endif %} • YALLA
+{% endblock %}
+{% block nav_entraineur %}active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=1.1">
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto 20px;">
+  <a href="{% if mode == 'editer' %}{% url 'entraineur:detail' entraineur.pk %}{% else %}{% url 'entraineur:liste' %}{% endif %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+    {% icon "arrow-left" %}
+    <span>{% if mode == 'editer' %}Retour à la fiche{% else %}Retour à l'effectif staff{% endif %}</span>
+  </a>
+</div>
+
+<div class="form-card">
+  <header style="margin-bottom: 26px;">
+    <p class="eyebrow" style="margin-bottom: 6px;">Staff &amp; Encadrement</p>
+    <h1 style="font-family: var(--display); font-weight: 800; font-size: 38px; text-transform: uppercase; line-height: 1;">
+      {% if mode == "creer" %}Ajouter un entraîneur{% else %}Modifier {{ entraineur.prenom }} {{ entraineur.nom }}{% endif %}
+    </h1>
+    <p style="color: var(--muted); font-size: 15px; margin-top: 6px;">
+      {% if mode == "creer" %}
+        Création conjointe du compte utilisateur (connexion) et du profil d'entraîneur.
+      {% else %}
+        Mise à jour des informations personnelles, des affectations et des accès.
+      {% endif %}
+    </p>
+  </header>
+
+  {% if form.non_field_errors %}
+    <div class="form-alert" style="margin-bottom: 20px;">
+      {% icon "alert" %}
+      <div>
+        {% for error in form.non_field_errors %}
+          <div>{{ error }}</div>
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" novalidate id="coach-form">
+    {% csrf_token %}
+
+    {# =================== 1. IDENTITÉ & COORDONNÉES =================== #}
+    <h2 class="form-section-title">1. Identité &amp; Coordonnées</h2>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="id_prenom">Prénom <span class="req">*</span></label>
+        <div class="input-wrap">
+          {% icon "user" %}
+          {{ form.prenom }}
+        </div>
+        {% if form.prenom.errors %}<span class="form-error">{{ form.prenom.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="id_nom">Nom <span class="req">*</span></label>
+        <div class="input-wrap">
+          {% icon "user" %}
+          {{ form.nom }}
+        </div>
+        {% if form.nom.errors %}<span class="form-error">{{ form.nom.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="id_email">Adresse e-mail (identifiant) <span class="req">*</span></label>
+        <div class="input-wrap">
+          {% icon "mail" %}
+          {{ form.email }}
+        </div>
+        {% if form.email.errors %}<span class="form-error">{{ form.email.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="id_telephone">Numéro de téléphone</label>
+        <div class="input-wrap">
+          {% icon "phone" %}
+          {{ form.telephone }}
+        </div>
+        {% if form.telephone.errors %}<span class="form-error">{{ form.telephone.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="id_date_naissance">
+          Date de naissance <small style="font-weight: 500; color: var(--muted);">(18 ans minimum)</small>
+        </label>
+        <div class="input-wrap">
+          {% icon "calendar" %}
+          {{ form.date_naissance }}
+        </div>
+        {% if form.date_naissance.errors %}<span class="form-error">{{ form.date_naissance.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="id_photo">Photo de profil / avatar</label>
+        <div class="input-wrap">
+          {{ form.photo }}
+        </div>
+        {% if form.photo.errors %}<span class="form-error">{{ form.photo.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    {# =================== 2. PROFIL TECHNIQUE & ÉQUIPE =================== #}
+    <h2 class="form-section-title">2. Profil Technique &amp; Affectation</h2>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="id_type">Type d'entraîneur</label>
+        <div class="input-wrap">
+          {{ form.type }}
+        </div>
+        {% if form.type.errors %}<span class="form-error">{{ form.type.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="id_fonction">Fonction</label>
+        <div class="input-wrap">
+          {{ form.fonction }}
+        </div>
+        {% if form.fonction.errors %}<span class="form-error">{{ form.fonction.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="id_specialite">Spécialité</label>
+        <div class="input-wrap">
+          {{ form.specialite }}
+        </div>
+        {% if form.specialite.errors %}<span class="form-error">{{ form.specialite.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="id_equipe">Équipe assignée (1 coach par équipe)</label>
+        <div class="input-wrap">
+          {{ form.equipe }}
+        </div>
+        <span class="form-help">Seules les équipes libres sans entraîneur sont sélectionnables.</span>
+        {% if form.equipe.errors %}<span class="form-error">{{ form.equipe.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    {# =================== 3. MOT DE PASSE ET SÉCURITÉ =================== #}
+    <h2 class="form-section-title">3. Accès &amp; Sécurité du Compte</h2>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="id_password1">
+          Mot de passe {% if mode == "creer" %}<span class="req">*</span>{% endif %}
+        </label>
+        <div class="input-wrap">
+          {% icon "lock" %}
+          {{ form.password1 }}
+          <button type="button" class="eye-btn" data-toggle="id_password1" aria-label="Afficher le mot de passe" title="Afficher/masquer">
+            {% icon "eye" %}
+          </button>
+        </div>
+        <span class="form-help">{{ form.password1.help_text }}</span>
+        {% if form.password1.errors %}<span class="form-error">{{ form.password1.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="id_password2">
+          Confirmer le mot de passe {% if mode == "creer" %}<span class="req">*</span>{% endif %}
+        </label>
+        <div class="input-wrap">
+          {% icon "lock" %}
+          {{ form.password2 }}
+          <button type="button" class="eye-btn" data-toggle="id_password2" aria-label="Afficher le mot de passe" title="Afficher/masquer">
+            {% icon "eye" %}
+          </button>
+        </div>
+        {% if form.password2.errors %}<span class="form-error">{{ form.password2.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-actions-bar">
+      <a href="{% if mode == 'editer' %}{% url 'entraineur:detail' entraineur.pk %}{% else %}{% url 'entraineur:liste' %}{% endif %}" class="btn btn-ghost">
+        Annuler
+      </a>
+      <button type="submit" class="btn btn-primary magnetic">
+        {% icon "check" %}
+        <span>{% if mode == "creer" %}Créer l'entraîneur{% else %}Enregistrer les modifications{% endif %}</span>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // Boutons œil interactifs pour afficher/masquer le mot de passe
+    document.querySelectorAll(".eye-btn[data-toggle]").forEach((btn) => {
+      const targetId = btn.getAttribute("data-toggle");
+      const input = document.getElementById(targetId);
+      if (!input) return;
+
+      btn.addEventListener("click", () => {
+        const isPassword = input.type === "password";
+        input.type = isPassword ? "text" : "password";
+        btn.setAttribute("aria-label", isPassword ? "Masquer le mot de passe" : "Afficher le mot de passe");
+        btn.style.color = isPassword ? "var(--coach-green)" : "var(--muted)";
+      });
+    });
+
+    if (window.gsap) {
+      gsap.from(".form-card", { y: 20, opacity: 0, duration: 0.45, ease: "power2.out" });
+    }
+  });
+</script>
+{% endblock %}

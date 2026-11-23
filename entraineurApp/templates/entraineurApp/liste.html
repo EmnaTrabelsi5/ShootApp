@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Entraîneurs & Encadrement • YALLA{% endblock %}
+{% block nav_entraineur %}active{% endblock %}
+{% block nav_entraineurs_current %} aria-current="page"{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+{# =================== HERO & INDICATEURS =================== #}
+<section class="hero" id="hero-entraineurs">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>Staff &amp; Encadrement · Saison {{ saison }}</p>
+    <h1 class="hero-title" data-split>Entraîneurs<br><span class="hero-title-2">&amp; Staff Technique</span></h1>
+    <p class="hero-sub">Gestion complète de l'encadrement sportif : affectations d'équipes, rôles tactiques et spécialités.</p>
+    {% if peut_gerer %}
+    <div class="hero-actions">
+      <a class="btn btn-primary magnetic" href="{% url 'entraineur:creer' %}">
+        <span class="btn-ic">{% icon "plus" %}</span><span>Ajouter un entraîneur</span>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <aside class="hero-kpis" aria-label="Statistiques de l'encadrement">
+    <div class="kpi-card">
+      <span class="kpi-label">Total Staff</span>
+      <b class="kpi-num">{{ stats.total }}</b>
+      <small class="kpi-sub">membres enregistrés</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">En Poste</span>
+      <b class="kpi-num">{{ stats.avec_equipe }}</b>
+      <small class="kpi-sub">équipes assignées</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Disponibles</span>
+      <b class="kpi-num">{{ stats.libres }}</b>
+      <small class="kpi-sub">sans équipe</small>
+    </div>
+  </aside>
+</section>
+
+{# =================== BARRE D'OUTILS ET FILTRES =================== #}
+<section class="coach-toolbar" aria-label="Filtres et recherche">
+  <form class="coach-search-box" method="get" action="{% url 'entraineur:liste' %}">
+    {% icon "search" %}
+    <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par nom, prénom, e-mail, spécialité..." autocomplete="off">
+    {% if q or specialite_filter or type_filter %}
+      <a class="clear-search" href="{% url 'entraineur:liste' %}" title="Réinitialiser les filtres">{% icon "x" %}</a>
+    {% endif %}
+  </form>
+
+  <nav class="coach-chips" aria-label="Filtres rapides">
+    <a href="{% url 'entraineur:liste' %}" class="coach-chip {% if not specialite_filter and not type_filter %}is-active{% endif %}">
+      <span>Tous</span>
+      <span class="chip-count">{{ stats.total }}</span>
+    </a>
+    {% for code, label in types %}
+      <a href="{% url 'entraineur:liste' %}?type={{ code }}{% if q %}&q={{ q }}{% endif %}"
+         class="coach-chip {% if type_filter == code %}is-active{% endif %}">
+        <span>{{ label }}</span>
+      </a>
+    {% endfor %}
+  </nav>
+</section>
+
+{# =================== GRILLE DES ENTRAÎNEURS =================== #}
+<section class="cards-view" aria-labelledby="staff-grid-title">
+  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+    <h2 class="list-title" id="staff-grid-title" style="margin: 0;">
+      Effectif Staff <em>{{ entraineurs|length }}</em>
+    </h2>
+    {% if q %}
+      <span class="text-muted" style="font-size: 13.5px; font-weight: 600;">
+        Résultats pour : <strong>« {{ q }} »</strong>
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="coach-grid" id="coaches-grid">
+    {% for coach in entraineurs %}
+      <article class="coach-card" id="coach-{{ coach.pk }}">
+        <div class="coach-card-banner">
+          <span class="coach-badge-type">
+            {{ coach.get_type_display|default:"Staff" }}
+          </span>
+          {% if coach.equipe %}
+            <span class="coach-badge-status has-team" title="Assigné à {{ coach.equipe.nom }}">
+              {% icon "flag" %} {{ coach.equipe.nom }}
+            </span>
+          {% else %}
+            <span class="coach-badge-status free">
+              Libre
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="coach-card-body">
+          <div class="coach-avatar-row">
+            <div class="coach-avatar" {% if coach.photo %}style="background-image: url('{{ coach.photo.url }}');"{% endif %}>
+              {% if not coach.photo %}<span>{{ coach.initiales }}</span>{% endif %}
+            </div>
+            {% if coach.age %}
+              <span style="font-size: 12px; font-weight: 700; color: var(--muted);">{{ coach.age }} ans</span>
+            {% endif %}
+          </div>
+
+          <h3 class="coach-name">{{ coach.prenom }} {{ coach.nom }}</h3>
+          <p class="coach-function">{{ coach.get_fonction_display|default:"Entraîneur" }}</p>
+
+          <div class="coach-details">
+            <div class="coach-detail-item">
+              {% icon "mail" %}
+              <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ coach.email }}</span>
+            </div>
+            {% if coach.telephone %}
+              <div class="coach-detail-item">
+                {% icon "phone" %}
+                <span>{{ coach.telephone }}</span>
+              </div>
+            {% endif %}
+            {% if coach.specialite %}
+              <span class="coach-specialty-tag">
+                {% icon "award" %} {{ coach.get_specialite_display }}
+              </span>
+            {% endif %}
+          </div>
+
+          <div class="coach-card-actions">
+            <a class="act act-view" href="{% url 'entraineur:detail' coach.pk %}">
+              {% icon "user" %} <span>Fiche</span>
+            </a>
+            {% if peut_gerer or user.pk == coach.pk %}
+              <a class="act act-view" href="{% url 'entraineur:editer' coach.pk %}" title="Modifier">
+                {% icon "pencil" %} <span>Modifier</span>
+              </a>
+            {% endif %}
+            {% if peut_gerer and user.pk != coach.pk %}
+              <a class="act act-del" href="{% url 'entraineur:supprimer' coach.pk %}" title="Supprimer {{ coach.prenom }} {{ coach.nom }}">
+                {% icon "trash" %}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--line-2); border-radius: 20px;">
+        <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center; background: rgba(31, 122, 58, .1); color: var(--coach-green);">
+          {% icon "clipboard" %}
+        </div>
+        <h3 style="font-family: var(--display); font-size: 24px; text-transform: uppercase;">Aucun entraîneur trouvé</h3>
+        <p style="color: var(--muted); font-size: 14.5px; max-width: 440px; margin: 8px auto 20px;">
+          {% if q %}
+            Aucun résultat ne correspond à votre recherche « {{ q }} ». Essayez d'autres mots-clés ou réinitialisez les filtres.
+          {% else %}
+            Aucun entraîneur n'a encore été créé dans cette catégorie.
+          {% endif %}
+        </p>
+        <a class="btn btn-primary" href="{% url 'entraineur:creer' %}">
+          <span class="btn-ic">{% icon "plus" %}</span><span>Ajouter le premier entraîneur</span>
+        </a>
+      </div>
+    {% endfor %}
+
+    {% if peut_gerer %}
+    <a class="pcard pcard-add" href="{% url 'entraineur:creer' %}" title="Ajouter un membre au staff">
+      <span class="add-ic">{% icon "plus" %}</span>
+      <strong>Nouvel entraîneur</strong>
+      <small>Créer un profil staff ou coach</small>
+    </a>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) {
+      gsap.from(".coach-card", {
+        y: 24,
+        opacity: 0,
+        duration: 0.45,
+        stagger: 0.05,
+        ease: "power2.out"
+      });
+    }
+  });
+</script>
+{% endblock %}

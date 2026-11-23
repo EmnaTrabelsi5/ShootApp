@@ -32,10 +32,10 @@
     <nav class="rail-nav">
       <span class="rail-indicator" aria-hidden="true"></span>
       <a href="{% url 'joueurs:liste' %}" class="rail-link {% block nav_vestiaire %}{% endblock %}" data-tip="Joueurs : vestiaire et effectif"{% block nav_joueurs_current %} aria-current="page"{% endblock %}>{% icon "users" %}<span>Joueurs</span></a>
-      <span class="rail-link is-soon" role="link" aria-disabled="true" data-tip="Entraîneurs : bientôt">{% icon "clipboard" %}<span>Entraîneurs</span><em>Bientôt</em></span>
+      {% if peut_voir_entraineurs %}<a href="{% url 'entraineur:liste' %}" class="rail-link {% block nav_entraineur %}{% endblock %}" data-tip="Entraîneurs : staff et encadrement"{% block nav_entraineurs_current %}{% endblock %}>{% icon "clipboard" %}<span>Entraîneurs</span></a>{% endif %}
       <span class="rail-link is-soon" role="link" aria-disabled="true" data-tip="Scouts : bientôt">{% icon "binoculars" %}<span>Scouts</span><em>Bientôt</em></span>
       <span class="rail-link is-soon" role="link" aria-disabled="true" data-tip="Entraînements : bientôt">{% icon "calendar" %}<span>Séances</span><em>Bientôt</em></span>
-      {% if est_admin %}<a href="{% url 'comptes:dashboard' %}" class="rail-link {% block nav_dashboard %}{% endblock %}" data-tip="Tableau de bord administrateur">{% icon "layout" %}<span>Dashboard</span></a>{% endif %}
+      {% if a_acces_dashboard %}<a href="{% url 'comptes:dashboard' %}" class="rail-link {% block nav_dashboard %}{% endblock %}" data-tip="Tableau de bord club">{% icon "layout" %}<span>Dashboard</span></a>{% endif %}
     </nav>
   </aside>
 

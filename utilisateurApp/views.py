@@ -8,7 +8,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from .forms import ConnexionForm
-from .roles import accueil_du_role, est_admin
+from .permissions import dashboard_required
+from .roles import accueil_du_role, a_acces_dashboard, est_admin
 
 # Comptes de démonstration (créés par la migration 0002), affichés en mode DEBUG
 COMPTES_TEST = [
@@ -47,8 +48,6 @@ def deconnexion(request):
     return redirect("accueil")
 
 
-@login_required
+@dashboard_required
 def dashboard(request):
-    if not est_admin(request.user):
-        raise PermissionDenied
     return render(request, "utilisateurApp/dashboard.html")
