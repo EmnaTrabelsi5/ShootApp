@@ -1,0 +1,100 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}Tableau de bord scouting{% endblock %}
+{% block top_scouts %}active{% endblock %}
+{% block side_dashboard %}active{% endblock %}
+{% block content %}
+<section class="card head-card dashboard-head">
+    <div class="head-top">
+        <div>
+            <h1>TABLEAU DE BORD <span class="pill-saison">Scouting 2026-2027</span></h1>
+            <p class="subtitle">Suivez les talents, rédigez vos rapports et pilotez vos recommandations.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="outline" href="{% url 'scoutApp:scout-create' %}">＋ Ajouter un scout</a>
+            <a class="btn-plan" href="{% url 'scoutApp:rapport-create' %}">✎ Nouveau rapport</a>
+        </div>
+    </div>
+</section>
+
+<section class="kpis">
+    <article class="kpi kpi-green">
+        <div class="kpi-top"><span>SCOUTS ACTIFS</span><span class="kpi-ic green">♙</span></div>
+        <div class="kpi-bottom"><strong class="kpi-val">{{ scouts|length }}</strong><span class="kpi-tag green">Équipe scouting</span></div>
+        <div class="kpi-bar"><span style="width: 78%"></span></div>
+        <div class="kpi-note"><span>Experts enregistrés</span><span>Actif</span></div>
+    </article>
+    <article class="kpi kpi-blue">
+        <div class="kpi-top"><span>RAPPORTS RÉDIGÉS</span><span class="kpi-ic blue">▤</span></div>
+        <div class="kpi-bottom"><strong class="kpi-val">{{ rapport_count }}</strong><span class="kpi-tag blue">Analyses</span></div>
+        <div class="kpi-bar"><span style="width: 64%"></span></div>
+        <div class="kpi-note"><span>Évaluations joueurs</span><span>À jour</span></div>
+    </article>
+    <article class="kpi kpi-orange">
+        <div class="kpi-top"><span>RECOMMANDATIONS</span><span class="kpi-ic orange">★</span></div>
+        <div class="kpi-bottom"><strong class="kpi-val">{{ recommendation_count }}</strong><span class="kpi-tag orange">Profils ciblés</span></div>
+        <div class="kpi-bar"><span style="width: 52%"></span></div>
+        <div class="kpi-note"><span>Potentiels détectés</span><span>Suivi</span></div>
+    </article>
+    <article class="kpi kpi-dark">
+        <div class="kpi-top"><span>À TRAITER</span><span class="kpi-ic dark">!</span></div>
+        <div class="kpi-bottom"><strong class="kpi-val">{{ pending_recommendation_count }}</strong><span class="kpi-tag yellow">En attente</span></div>
+        <div class="kpi-note"><span>Recommandations à valider</span><span>Priorité</span></div>
+    </article>
+</section>
+
+<section class="dashboard-grid">
+    <article class="card section-card">
+        <div class="section-head">
+            <h2>▤ DERNIERS RAPPORTS</h2>
+            <a href="{% url 'scoutApp:rapport-list' %}">Voir tous les rapports →</a>
+        </div>
+        <div class="report-list">
+            {% for rapport in recent_reports %}
+            <a class="report-row" href="{% url 'scoutApp:rapport-detail' rapport.pk %}">
+                <span class="report-avatar">{{ rapport.joueur.prenom|first|upper }}{{ rapport.joueur.nom|first|upper }}</span>
+                <span class="report-main"><strong>{{ rapport.joueur.prenom }} {{ rapport.joueur.nom }}</strong><span>{{ rapport.scout }} · Évaluation technique, physique et mentale</span></span>
+                <span class="report-date">{{ rapport.date_rapport|date:"d/m/Y" }}</span>
+            </a>
+            {% empty %}<p class="empty-state">Aucun rapport pour le moment. Commencez par analyser un joueur.</p>{% endfor %}
+        </div>
+    </article>
+    <article class="card section-card">
+        <div class="section-head">
+            <h2>★ TOP RECOMMANDATIONS</h2>
+            <a href="{% url 'scoutApp:recommandation-list' %}">Tout voir →</a>
+        </div>
+        <ul class="metric-list">
+            {% for recommandation in top_recommendations %}
+            <li>
+                <span class="metric-icon">★</span>
+                <span class="metric-text"><strong>{{ recommandation.joueur.prenom }} {{ recommandation.joueur.nom }}</strong><span>{{ recommandation.get_statut_display }} · {{ recommandation.justification|default:"Profil recommandé" }}</span></span>
+                <span class="score">{{ recommandation.score_compatibilite|floatformat:0 }}%</span>
+            </li>
+            {% empty %}<li class="empty-state">Aucune recommandation enregistrée.</li>{% endfor %}
+        </ul>
+    </article>
+</section>
+
+<section class="card section-card">
+    <div class="section-head">
+        <h2>♙ SCOUTS DE L'ÉQUIPE</h2>
+        <a href="{% url 'scoutApp:scout-create' %}">Ajouter un scout ＋</a>
+    </div>
+    <div class="crud-page" style="padding:0">
+        <table>
+            <thead><tr><th>Nom</th><th>Email</th><th>Spécialité</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody>
+            {% for scout in scouts %}
+                <tr>
+                    <td><strong>{{ scout.prenom }} {{ scout.nom }}</strong></td>
+                    <td>{{ scout.email }}</td>
+                    <td>{{ scout.specialite_scout|default:"Non renseignée" }}</td>
+                    <td><span class="kpi-tag green">{% if scout.is_active %}Actif{% else %}Inactif{% endif %}</span></td>
+                    <td><a href="{% url 'scoutApp:scout-detail' scout.pk %}">Voir</a> · <a href="{% url 'scoutApp:scout-update' scout.pk %}">Modifier</a></td>
+                </tr>
+            {% empty %}<tr><td class="empty-row" colspan="5">Aucun scout enregistré.</td></tr>{% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

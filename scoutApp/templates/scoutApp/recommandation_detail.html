@@ -1,0 +1,11 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}Recommandation{% endblock %}
+{% block content %}
+<h1>Recommandation pour {{ object.joueur }}</h1>
+<p>Score : {{ object.score_compatibilite }}/100</p>
+<p>Statut : {{ object.get_statut_display }}</p>
+<p>Justification : {{ object.justification|default:"-"|linebreaksbr }}</p>
+<p><a href="{% url 'scoutApp:recommandation-update' object.pk %}">Modifier</a>
+<a href="{% url 'scoutApp:recommandation-delete' object.pk %}">Supprimer</a>
+<a href="{% url 'scoutApp:recommandation-list' %}">Retour</a></p>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}Recommandations{% endblock %}
+{% block top_recommendations %}active{% endblock %}
+{% block side_recommendations %}active{% endblock %}
+{% block content %}
+<section class="card crud-page">
+<h1>Recommandations</h1>
+<div class="page-actions"><p><a class="btn-plan" href="{% url 'scoutApp:recommandation-create' %}">＋ Ajouter une recommandation</a></p></div>
+<table><thead><tr><th>Joueur</th><th>Score</th><th>Statut</th><th>Actions</th></tr></thead><tbody>
+{% for recommandation in recommandations %}
+<tr><td>{{ recommandation.joueur }}</td><td>{{ recommandation.score_compatibilite }}</td><td>{{ recommandation.get_statut_display }}</td>
+<td><a href="{% url 'scoutApp:recommandation-detail' recommandation.pk %}">Voir</a>
+<a href="{% url 'scoutApp:recommandation-update' recommandation.pk %}">Modifier</a>
+<a href="{% url 'scoutApp:recommandation-delete' recommandation.pk %}">Supprimer</a></td></tr>
+{% empty %}<tr><td class="empty-row" colspan="4">Aucune recommandation.</td></tr>{% endfor %}
+</tbody></table>
+</section>
+{% endblock %}

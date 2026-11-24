@@ -1,0 +1,9 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}Supprimer une recommandation{% endblock %}
+{% block content %}
+<h1>Supprimer la recommandation</h1>
+<p>Voulez-vous vraiment supprimer {{ object }} ?</p>
+<form method="post">{% csrf_token %}
+<button type="submit">Supprimer</button>
+<a href="{% url 'scoutApp:recommandation-list' %}">Annuler</a></form>
+{% endblock %}

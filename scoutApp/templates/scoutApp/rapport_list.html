@@ -1,0 +1,18 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}Rapports de scouting{% endblock %}
+{% block top_reports %}active{% endblock %}
+{% block side_reports %}active{% endblock %}
+{% block content %}
+<section class="card crud-page">
+<h1>Rapports de scouting</h1>
+<div class="page-actions"><p><a class="btn-plan" href="{% url 'scoutApp:rapport-create' %}">＋ Ajouter un rapport</a></p></div>
+<table><thead><tr><th>Scout</th><th>Joueur</th><th>Date</th><th>Actions</th></tr></thead><tbody>
+{% for rapport in rapports %}
+<tr><td>{{ rapport.scout }}</td><td>{{ rapport.joueur }}</td><td>{{ rapport.date_rapport }}</td>
+<td><a href="{% url 'scoutApp:rapport-detail' rapport.pk %}">Voir</a>
+<a href="{% url 'scoutApp:rapport-update' rapport.pk %}">Modifier</a>
+<a href="{% url 'scoutApp:rapport-delete' rapport.pk %}">Supprimer</a></td></tr>
+{% empty %}<tr><td class="empty-row" colspan="4">Aucun rapport.</td></tr>{% endfor %}
+</tbody></table>
+</section>
+{% endblock %}

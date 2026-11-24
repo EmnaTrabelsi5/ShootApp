@@ -1,0 +1,10 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}Recommandation{% endblock %}
+{% block content %}
+<section class="card form-card">
+<h1>{% if object %}Modifier{% else %}Ajouter{% endif %} une recommandation</h1>
+<form method="post">{% csrf_token %}{{ form.as_p }}
+<button type="submit">Enregistrer</button>
+<a href="{% url 'scoutApp:recommandation-list' %}">Annuler</a></form>
+</section>
+{% endblock %}

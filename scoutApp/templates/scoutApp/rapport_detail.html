@@ -1,0 +1,13 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}Rapport de scouting{% endblock %}
+{% block content %}
+<h1>Rapport de {{ object.scout }} sur {{ object.joueur }}</h1>
+<p>Technique : {{ object.evaluation_technique }}/10</p>
+<p>Physique : {{ object.evaluation_physique }}/10</p>
+<p>Tactique : {{ object.evaluation_tactique }}/10</p>
+<p>Mentale : {{ object.evaluation_mentale }}/10</p>
+<p>Observations : {{ object.observations|default:"-"|linebreaksbr }}</p>
+<p><a href="{% url 'scoutApp:rapport-update' object.pk %}">Modifier</a>
+<a href="{% url 'scoutApp:rapport-delete' object.pk %}">Supprimer</a>
+<a href="{% url 'scoutApp:rapport-list' %}">Retour</a></p>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}{% if object %}Modifier{% else %}Ajouter{% endif %} un scout{% endblock %}
+{% block content %}
+<section class="card form-card">
+<h1>{% if object %}Modifier{% else %}Ajouter{% endif %} un scout</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Enregistrer</button>
+    <a href="{% url 'scoutApp:scout-list' %}">Annuler</a>
+</form>
+</section>
+{% endblock %}

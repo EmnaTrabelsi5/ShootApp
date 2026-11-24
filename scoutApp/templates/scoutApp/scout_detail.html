@@ -1,0 +1,12 @@
+{% extends "scoutApp/base.html" %}
+{% block title %}{{ object }}{% endblock %}
+{% block content %}
+<h1>{{ object.prenom }} {{ object.nom }}</h1>
+<p>Email : {{ object.email }}</p>
+<p>Téléphone : {{ object.telephone|default:"-" }}</p>
+<p>Type : {{ object.type|default:"-" }}</p>
+<p>Spécialité : {{ object.specialite_scout|default:"-" }}</p>
+<p><a href="{% url 'scoutApp:scout-update' object.pk %}">Modifier</a>
+   <a href="{% url 'scoutApp:scout-delete' object.pk %}">Supprimer</a>
+   <a href="{% url 'scoutApp:scout-list' %}">Retour</a></p>
+{% endblock %}

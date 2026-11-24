@@ -31,6 +31,7 @@ urlpatterns = [
     path('presidents/', include('presidentApp.urls')),
     path('', include('utilisateurApp.urls')),
     path('', views.accueil, name='accueil'),
+    path('scout/', include('scoutApp.urls')),
 ]
 
 if settings.DEBUG:
