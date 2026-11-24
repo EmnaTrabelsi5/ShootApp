@@ -1,13 +1,27 @@
 {% extends "scoutApp/base.html" %}
-{% block title %}{% if object %}Modifier{% else %}Ajouter{% endif %} un scout{% endblock %}
+{% load footlab %}
+{% block title %}{% if object %}Modifier le scout{% else %}Ajouter un scout{% endif %} • YALLA{% endblock %}
 {% block content %}
-<section class="card form-card">
-<h1>{% if object %}Modifier{% else %}Ajouter{% endif %} un scout</h1>
-<form method="post" enctype="multipart/form-data">
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Équipe de recrutement</p>
+    <h1>{% if object %}Modifier un scout{% else %}Ajouter un scout{% endif %}</h1>
+    <p>Renseignez les informations du membre de l'équipe de scouting.</p>
+  </div>
+  <a class="btn btn-ghost" href="{% url 'scoutApp:scout-list' %}">{% icon "arrow-left" %}<span>Retour au scouting</span></a>
+</header>
+
+<section class="form-card scout-form-card">
+  {% if form.non_field_errors %}
+  <div class="form-alert">{% icon "alert" %}<div>{{ form.non_field_errors }}</div></div>
+  {% endif %}
+  <form method="post" enctype="multipart/form-data" class="scout-form">
     {% csrf_token %}
     {{ form.as_p }}
-    <button type="submit">Enregistrer</button>
-    <a href="{% url 'scoutApp:scout-list' %}">Annuler</a>
-</form>
+    <div class="form-actions-bar">
+      <a class="btn btn-ghost" href="{% url 'scoutApp:scout-list' %}">Annuler</a>
+      <button class="btn btn-primary" type="submit">{% icon "check" %}<span>Enregistrer</span></button>
+    </div>
+  </form>
 </section>
 {% endblock %}

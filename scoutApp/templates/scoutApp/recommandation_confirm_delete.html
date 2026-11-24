@@ -1,9 +1,16 @@
 {% extends "scoutApp/base.html" %}
-{% block title %}Supprimer une recommandation{% endblock %}
+{% load footlab %}
+{% block title %}Supprimer une recommandation • YALLA{% endblock %}
 {% block content %}
-<h1>Supprimer la recommandation</h1>
-<p>Voulez-vous vraiment supprimer {{ object }} ?</p>
-<form method="post">{% csrf_token %}
-<button type="submit">Supprimer</button>
-<a href="{% url 'scoutApp:recommandation-list' %}">Annuler</a></form>
+<section class="fiche-box scout-confirm">
+  <span class="confirm-icon">{% icon "trash" %}</span>
+  <p class="eyebrow">Confirmation</p>
+  <h1>Supprimer cette recommandation&nbsp;?</h1>
+  <p>La recommandation concernant <strong>{{ object.joueur.prenom }} {{ object.joueur.nom }}</strong> sera définitivement supprimée.</p>
+  <form method="post" class="scout-actions">
+    {% csrf_token %}
+    <a class="btn btn-ghost" href="{% url 'scoutApp:recommandation-detail' object.pk %}">Annuler</a>
+    <button class="btn btn-danger" type="submit">{% icon "trash" %}<span>Confirmer la suppression</span></button>
+  </form>
+</section>
 {% endblock %}

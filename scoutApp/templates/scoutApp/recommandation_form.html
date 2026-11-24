@@ -1,10 +1,27 @@
 {% extends "scoutApp/base.html" %}
-{% block title %}Recommandation{% endblock %}
+{% load footlab %}
+{% block title %}{% if object %}Modifier la recommandation{% else %}Nouvelle recommandation{% endif %} • YALLA{% endblock %}
 {% block content %}
-<section class="card form-card">
-<h1>{% if object %}Modifier{% else %}Ajouter{% endif %} une recommandation</h1>
-<form method="post">{% csrf_token %}{{ form.as_p }}
-<button type="submit">Enregistrer</button>
-<a href="{% url 'scoutApp:recommandation-list' %}">Annuler</a></form>
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Décision de recrutement</p>
+    <h1>{% if object %}Modifier la recommandation{% else %}Nouvelle recommandation{% endif %}</h1>
+    <p>Associez un joueur, estimez sa compatibilité et indiquez le statut de la recommandation.</p>
+  </div>
+  <a class="btn btn-ghost" href="{% url 'scoutApp:recommandation-list' %}">{% icon "arrow-left" %}<span>Retour aux recommandations</span></a>
+</header>
+
+<section class="form-card scout-form-card">
+  {% if form.non_field_errors %}
+  <div class="form-alert">{% icon "alert" %}<div>{{ form.non_field_errors }}</div></div>
+  {% endif %}
+  <form method="post" class="scout-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="form-actions-bar">
+      <a class="btn btn-ghost" href="{% url 'scoutApp:recommandation-list' %}">Annuler</a>
+      <button class="btn btn-primary" type="submit">{% icon "check" %}<span>Enregistrer</span></button>
+    </div>
+  </form>
 </section>
 {% endblock %}

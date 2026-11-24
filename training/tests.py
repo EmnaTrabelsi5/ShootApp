@@ -27,6 +27,11 @@ class IntegrationShootAppTests(TestCase):
         # l'entrée « Séances » du rail est un vrai lien, active, sans badge « Bientôt »
         self.assertIn(f'href="{reverse("seances:planning")}" class="rail-link active"', html)
         self.assertNotIn("<span>Séances</span><em>Bientôt</em>", html)
+        self.assertRegex(
+            html,
+            rf'<a\b(?=[^>]*href="{reverse("scoutApp:scout-list")}")(?=[^>]*class="rail-link(?: active)?\s*")[^>]*>',
+        )
+        self.assertNotIn('data-tip="Scouts : bientôt"', html)
 
     def test_tableau_tactique_enregistre(self):
         self.client.force_login(self.user)

@@ -1,10 +1,27 @@
 {% extends "scoutApp/base.html" %}
-{% block title %}Rapport de scouting{% endblock %}
+{% load footlab %}
+{% block title %}{% if object %}Modifier le rapport{% else %}Nouveau rapport{% endif %} • YALLA{% endblock %}
 {% block content %}
-<section class="card form-card">
-<h1>{% if object %}Modifier{% else %}Ajouter{% endif %} un rapport</h1>
-<form method="post">{% csrf_token %}{{ form.as_p }}
-<button type="submit">Enregistrer</button>
-<a href="{% url 'scoutApp:rapport-list' %}">Annuler</a></form>
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Évaluation d'un joueur</p>
+    <h1>{% if object %}Modifier le rapport{% else %}Nouveau rapport{% endif %}</h1>
+    <p>Évaluez le profil sur quatre dimensions et consignez vos observations.</p>
+  </div>
+  <a class="btn btn-ghost" href="{% url 'scoutApp:rapport-list' %}">{% icon "arrow-left" %}<span>Retour aux rapports</span></a>
+</header>
+
+<section class="form-card scout-form-card">
+  {% if form.non_field_errors %}
+  <div class="form-alert">{% icon "alert" %}<div>{{ form.non_field_errors }}</div></div>
+  {% endif %}
+  <form method="post" class="scout-form">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div class="form-actions-bar">
+      <a class="btn btn-ghost" href="{% url 'scoutApp:rapport-list' %}">Annuler</a>
+      <button class="btn btn-primary" type="submit">{% icon "check" %}<span>Enregistrer le rapport</span></button>
+    </div>
+  </form>
 </section>
 {% endblock %}

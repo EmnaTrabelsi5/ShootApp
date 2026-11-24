@@ -1,11 +1,29 @@
 {% extends "scoutApp/base.html" %}
-{% block title %}Recommandation{% endblock %}
+{% load footlab %}
+{% block title %}Recommandation · {{ object.joueur }} • YALLA{% endblock %}
 {% block content %}
-<h1>Recommandation pour {{ object.joueur }}</h1>
-<p>Score : {{ object.score_compatibilite }}/100</p>
-<p>Statut : {{ object.get_statut_display }}</p>
-<p>Justification : {{ object.justification|default:"-"|linebreaksbr }}</p>
-<p><a href="{% url 'scoutApp:recommandation-update' object.pk %}">Modifier</a>
-<a href="{% url 'scoutApp:recommandation-delete' object.pk %}">Supprimer</a>
-<a href="{% url 'scoutApp:recommandation-list' %}">Retour</a></p>
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Décision de recrutement</p>
+    <h1>Recommandation</h1>
+    <p>Profil joueur proposé à l'évaluation du club.</p>
+  </div>
+  <a class="btn btn-ghost" href="{% url 'scoutApp:recommandation-list' %}">{% icon "arrow-left" %}<span>Retour aux recommandations</span></a>
+</header>
+
+<section class="fiche-box">
+  <h2 class="fiche-box-title">{% icon "flag" %}<span>{{ object.joueur.prenom }} {{ object.joueur.nom }}</span></h2>
+  <dl class="fiche-meta-list">
+    <div class="fiche-meta-row"><dt>Joueur</dt><dd>{{ object.joueur.prenom }} {{ object.joueur.nom }}</dd></div>
+    <div class="fiche-meta-row"><dt>Compatibilité</dt><dd><span class="scout-score">{{ object.score_compatibilite|floatformat:0 }}%</span></dd></div>
+    <div class="fiche-meta-row"><dt>Statut</dt><dd><span class="scout-status {% if object.statut == 'ACCEPTEE' %}is-accepted{% elif object.statut == 'REJETEE' %}is-rejected{% else %}is-pending{% endif %}">{{ object.get_statut_display }}</span></dd></div>
+    <div class="fiche-meta-row"><dt>Créée le</dt><dd>{{ object.date_creation|date:"d/m/Y H:i" }}</dd></div>
+  </dl>
+  <h3 class="scout-section-title">{% icon "clipboard" %}Justification</h3>
+  <p class="scout-detail-observations">{{ object.justification|default:"Aucune justification renseignée."|linebreaksbr }}</p>
+  <div class="scout-actions">
+    <a class="btn btn-ghost" href="{% url 'scoutApp:recommandation-update' object.pk %}">{% icon "pencil" %}<span>Modifier</span></a>
+    <a class="btn btn-danger" href="{% url 'scoutApp:recommandation-delete' object.pk %}">{% icon "trash" %}<span>Supprimer</span></a>
+  </div>
+</section>
 {% endblock %}

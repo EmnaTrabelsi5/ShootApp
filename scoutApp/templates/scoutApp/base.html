@@ -1,67 +1,12 @@
-<!doctype html>
-<html lang="fr">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Scouting{% endblock %}</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Inter:wght@400;600;700;800;900&family=Permanent+Marker&display=swap">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'scoutApp/footlab.css' %}">
-    <link rel="stylesheet" href="{% static 'scoutApp/street.css' %}">
-    <link rel="stylesheet" href="{% static 'scoutApp/exercices3d.css' %}">
-    <link rel="stylesheet" href="{% static 'scoutApp/scout.css' %}">
-</head>
-<body>
-    <header class="topbar">
-        <a class="brand" href="{% url 'scoutApp:scout-list' %}">
-            <span class="brand-logo">⚽</span>
-            <span>
-                <span class="brand-name">SCOUT<span>LAB</span></span>
-                <span class="brand-sub">FOOTBALL INTELLIGENCE</span>
-            </span>
-        </a>
-        <nav class="topnav" aria-label="Navigation principale">
-            <a class="{% block top_scouts %}{% endblock %}" href="{% url 'scoutApp:scout-list' %}">Tableau de bord</a>
-            <a class="{% block top_reports %}{% endblock %}" href="{% url 'scoutApp:rapport-list' %}">Rapports</a>
-            <a class="{% block top_recommendations %}{% endblock %}" href="{% url 'scoutApp:recommandation-list' %}">Recommandations</a>
-        </nav>
-        <div class="top-actions">
-            <span class="date-pill">◷ {% now "l d F Y" %}</span>
-            <a class="btn-new" href="{% url 'scoutApp:rapport-create' %}">＋ Nouveau rapport</a>
-            <span class="coach">
-                <span class="avatar">SC</span>
-                <span><strong class="coach-name">Espace scout</strong><small class="coach-role">Analyse & recrutement</small></span>
-            </span>
-        </div>
-    </header>
-    <div class="layout">
-        <aside class="sidebar">
-            <div class="side-head">
-                <div class="side-row"><span class="side-title"><span class="dot-green"></span> ESPACE SCOUT</span><span class="pill-season">2026/27</span></div>
-                <div class="side-row small"><span>Suivi des talents</span><span class="en-cours">● Actif</span></div>
-            </div>
-            <nav class="side-nav" aria-label="Navigation scouting">
-                <a class="{% block side_dashboard %}{% endblock %}" href="{% url 'scoutApp:scout-list' %}">▦ <span>Tableau de bord</span></a>
-                <a class="{% block side_reports %}{% endblock %}" href="{% url 'scoutApp:rapport-list' %}">▤ <span>Rapports de scouting</span></a>
-                <a class="{% block side_recommendations %}{% endblock %}" href="{% url 'scoutApp:recommandation-list' %}">★ <span>Recommandations</span></a>
-                <a href="{% url 'scoutApp:scout-create' %}">♙ <span>Ajouter un scout</span></a>
-            </nav>
-            <div class="graff-wall">
-                <span class="tag-big">SCOUT</span>
-                <span class="tag-small">talent hunt</span>
-                <span class="tag-crown">★ PRO</span>
-                <span class="graff-ball">⚽</span>
-            </div>
-            <div class="side-match">
-                <div class="sm-label">⚑ DERNIÈRE ACTIVITÉ <span class="pill-j2">LIVE</span></div>
-                <div class="sm-team">Analyse des talents</div>
-                <div class="sm-when">Rapports et recommandations à jour</div>
-                <div class="sm-foot"><span>Plateforme</span><span class="valide">Connectée</span></div>
-            </div>
-        </aside>
-        <main class="main">
-            {% block content %}{% endblock %}
-        </main>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+{% load static %}
+
+{% block body_class %}page-simple scout-page{% endblock %}
+{% block nav_scouts %}active{% endblock %}
+{% block nav_scouts_current %} aria-current="page"{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'scoutApp/scout.css' %}?v=3.0">
+{% endblock %}

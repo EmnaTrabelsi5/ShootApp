@@ -36,7 +36,7 @@
       <a href="{% url 'competitionApp:match_list' %}" class="rail-link {% block nav_matchs %}{% endblock %}" data-tip="Matchs &amp; Compétitions"{% block nav_matchs_current %}{% endblock %}>{% icon "trophy" %}<span>Matchs</span></a>
       {% if est_admin %}<a href="{% url 'equipes:liste' %}" class="rail-link {% block nav_equipes %}{% endblock %}" data-tip="Équipes : gestion des équipes du club">{% icon "shield" %}<span>Équipes</span></a>
       <a href="{% url 'presidents:liste' %}" class="rail-link {% block nav_presidents %}{% endblock %}" data-tip="Présidents : comptes et équipes dirigées">{% icon "award" %}<span>Présidents</span></a>{% elif user.is_authenticated %}<a href="{% url 'equipes:mon_equipe' %}" class="rail-link {% block nav_mon_equipe %}{% endblock %}" data-tip="Consulter mon équipe">{% icon "shield" %}<span>Mon équipe</span></a>{% endif %}
-      <span class="rail-link is-soon" role="link" aria-disabled="true" data-tip="Scouts : bientôt">{% icon "binoculars" %}<span>Scouts</span><em>Bientôt</em></span>
+      <a href="{% url 'scoutApp:scout-list' %}" class="rail-link {% block nav_scouts %}{% endblock %}" data-tip="Scouts : rapports et recommandations"{% block nav_scouts_current %}{% endblock %}>{% icon "binoculars" %}<span>Scouts</span></a>
       <a href="{% url 'seances:planning' %}" class="rail-link {% block nav_seances %}{% endblock %}" data-tip="Séances : planning des entraînements"{% block nav_seances_current %}{% endblock %}>{% icon "calendar" %}<span>Séances</span></a>
       {% if a_acces_dashboard %}<a href="{% url 'comptes:dashboard' %}" class="rail-link {% block nav_dashboard %}{% endblock %}" data-tip="Tableau de bord club">{% icon "layout" %}<span>Dashboard</span></a>{% endif %}
     </nav>

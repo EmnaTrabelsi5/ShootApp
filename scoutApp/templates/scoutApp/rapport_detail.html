@@ -1,13 +1,40 @@
 {% extends "scoutApp/base.html" %}
-{% block title %}Rapport de scouting{% endblock %}
+{% load footlab %}
+{% block title %}Rapport · {{ object.joueur }} • YALLA{% endblock %}
 {% block content %}
-<h1>Rapport de {{ object.scout }} sur {{ object.joueur }}</h1>
-<p>Technique : {{ object.evaluation_technique }}/10</p>
-<p>Physique : {{ object.evaluation_physique }}/10</p>
-<p>Tactique : {{ object.evaluation_tactique }}/10</p>
-<p>Mentale : {{ object.evaluation_mentale }}/10</p>
-<p>Observations : {{ object.observations|default:"-"|linebreaksbr }}</p>
-<p><a href="{% url 'scoutApp:rapport-update' object.pk %}">Modifier</a>
-<a href="{% url 'scoutApp:rapport-delete' object.pk %}">Supprimer</a>
-<a href="{% url 'scoutApp:rapport-list' %}">Retour</a></p>
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Rapport du {{ object.date_rapport|date:"d/m/Y" }}</p>
+    <h1>Évaluation du joueur</h1>
+    <p>Rapport rédigé par {{ object.scout.prenom }} {{ object.scout.nom }}.</p>
+  </div>
+  <a class="btn btn-ghost" href="{% url 'scoutApp:rapport-list' %}">{% icon "arrow-left" %}<span>Retour aux rapports</span></a>
+</header>
+
+<div class="scout-detail-grid">
+  <section class="fiche-box">
+    <h2 class="fiche-box-title">{% icon "user" %}<span>{{ object.joueur.prenom }} {{ object.joueur.nom }}</span></h2>
+    <dl class="fiche-meta-list">
+      <div class="fiche-meta-row"><dt>Joueur</dt><dd>{{ object.joueur.prenom }} {{ object.joueur.nom }}</dd></div>
+      <div class="fiche-meta-row"><dt>Scout</dt><dd>{{ object.scout.prenom }} {{ object.scout.nom }}</dd></div>
+      <div class="fiche-meta-row"><dt>Date du rapport</dt><dd>{{ object.date_rapport|date:"d/m/Y" }}</dd></div>
+    </dl>
+    <div class="scout-actions">
+      <a class="btn btn-ghost" href="{% url 'scoutApp:rapport-update' object.pk %}">{% icon "pencil" %}<span>Modifier</span></a>
+      <a class="btn btn-danger" href="{% url 'scoutApp:rapport-delete' object.pk %}">{% icon "trash" %}<span>Supprimer</span></a>
+    </div>
+  </section>
+
+  <section class="fiche-box">
+    <h2 class="fiche-box-title">{% icon "activity" %}<span>Évaluations</span></h2>
+    <div class="scout-rating-grid">
+      <div class="scout-rating"><span>Technique</span><strong>{{ object.evaluation_technique }}<small>/10</small></strong></div>
+      <div class="scout-rating"><span>Physique</span><strong>{{ object.evaluation_physique }}<small>/10</small></strong></div>
+      <div class="scout-rating"><span>Tactique</span><strong>{{ object.evaluation_tactique }}<small>/10</small></strong></div>
+      <div class="scout-rating"><span>Mentale</span><strong>{{ object.evaluation_mentale }}<small>/10</small></strong></div>
+    </div>
+    <h3 class="scout-section-title">{% icon "clipboard" %}Observations</h3>
+    <p class="scout-detail-observations">{{ object.observations|default:"Aucune observation renseignée."|linebreaksbr }}</p>
+  </section>
+</div>
 {% endblock %}
