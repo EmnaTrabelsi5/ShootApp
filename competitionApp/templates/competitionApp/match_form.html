@@ -1,0 +1,44 @@
+{% extends "competitionApp/base_matchs.html" %}
+{% load static footlab %}
+
+{% block titre %}{% if object %}Modifier le match{% else %}Planifier un match{% endif %}{% endblock %}
+
+{% block contenu %}
+<div style="max-width: 860px; margin: 0 auto 20px;">
+  <a href="{% if object %}{% url 'competitionApp:match_detail' object.pk %}{% else %}{% url 'competitionApp:match_list' %}{% endif %}" class="btn btn-ghost" style="font-size: 13.5px;">
+    {% icon "arrow-left" %}
+    <span>{% if object %}Retour au détail du match{% else %}Retour au calendrier{% endif %}</span>
+  </a>
+</div>
+
+<div class="form-card">
+  <header style="margin-bottom: 26px;">
+    <p class="eyebrow" style="margin-bottom: 6px;">Gestion des matchs</p>
+    <h1 style="font-family: var(--display); font-weight: 800; font-size: 38px; text-transform: uppercase; line-height: 1;">
+      {% if object %}Modifier le match{% else %}Planifier un match{% endif %}
+    </h1>
+    <p style="color: var(--muted); font-size: 15px; margin-top: 6px;">
+      {% if object %}
+        Mise à jour des informations de la rencontre (statut, date, lieu).
+      {% else %}
+        Le match sera créé avec le statut « Programmé ». Le score sera enregistré lors de la validation du résultat final.
+      {% endif %}
+    </p>
+  </header>
+
+  <form method="post" novalidate id="match-form">
+    {% csrf_token %}
+    {% include "competitionApp/_champs_formulaire.html" %}
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{% if object %}{% url 'competitionApp:match_detail' object.pk %}{% else %}{% url 'competitionApp:match_list' %}{% endif %}">
+        Annuler
+      </a>
+      <button type="submit" class="btn btn-primary">
+        <span class="btn-ic">{% icon "check" %}</span>
+        <span>Enregistrer le match</span>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

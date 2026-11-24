@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}{{ president.prenom }} {{ president.nom }} • Fiche détaillée • YALLA{% endblock %}
+{% block nav_presidents %}active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+  <a href="{% url 'presidents:liste' %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+    {% icon "arrow-left" %} <span>Retour aux présidents</span>
+  </a>
+</div>
+
+<div class="fiche-two-frames">
+  {# =================== CADRE 1 : INFORMATIONS PERSONNELLES =================== #}
+  <section class="fiche-box">
+    <h2 class="fiche-box-title">
+      {% icon "user" %} <span>Cadre 1 – Informations personnelles</span>
+    </h2>
+
+    <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 22px;">
+      <div class="coach-avatar" style="width: 72px; height: 72px; border-radius: 50%; {% if president.photo %}background-image: url('{{ president.photo.url }}');{% endif %}">
+        {% if not president.photo %}<span>{{ president.initiales }}</span>{% endif %}
+      </div>
+      <div>
+        <h1 style="font-family: var(--display); font-size: 28px; font-weight: 800; text-transform: uppercase; margin: 0; line-height: 1.1;">
+          {{ president.prenom }} {{ president.nom }}
+        </h1>
+        <span class="coach-badge-status has-team" style="margin-top: 6px; display: inline-flex; align-items: center; gap: 5px;">
+          {% icon "award" %} Président
+        </span>
+      </div>
+    </div>
+
+    <dl class="fiche-meta-list">
+      <div class="fiche-meta-row">
+        <dt>Nom</dt>
+        <dd>{{ president.nom }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Prénom</dt>
+        <dd>{{ president.prenom }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Adresse</dt>
+        <dd>{{ president.adresse|default:"Non renseignée" }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Téléphone</dt>
+        <dd>{{ president.telephone|default:"Non renseigné" }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>E-mail</dt>
+        <dd>{{ president.email }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Nationalité</dt>
+        <dd>{{ president.nationalite|default:"Non renseignée" }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Date de naissance</dt>
+        <dd>{{ president.date_naissance|date:"d/m/Y"|default:"Non renseignée" }}</dd>
+      </div>
+      {# Remplacement de « Président depuis: Non renseigné » et « Inscrit le: 23/11/2026 » par date réelle et durée calculée #}
+      <div class="fiche-meta-row">
+        <dt>Date de début de présidence</dt>
+        <dd>{{ president.date_debut_presidence|date:"d/m/Y"|default:"Non renseignée" }}</dd>
+      </div>
+      <div class="fiche-meta-row" style="background: rgba(31, 122, 58, 0.06); padding: 10px 14px; border-radius: 10px; border-bottom: none;">
+        <dt style="color: var(--coach-green); font-weight: 700;">Durée de présidence calculée</dt>
+        <dd style="color: var(--coach-green); font-weight: 800; font-size: 15px;">{{ duree_presidence }}</dd>
+      </div>
+    </dl>
+  </section>
+
+  {# =================== CADRE 2 : ÉQUIPES ASSOCIÉES =================== #}
+  <section class="fiche-box">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line-2);">
+      <h2 class="fiche-box-title" style="margin: 0; padding: 0; border: none;">
+        {% icon "shield" %} <span>Cadre 2 – Équipes associées</span>
+      </h2>
+      <span style="font-size: 13px; font-weight: 700; color: var(--coach-green);">
+        {{ equipes|length }} équipe{{ equipes|length|pluralize }}
+      </span>
+    </div>
+
+    {% if equipes %}
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for e in equipes %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 14px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <div class="coach-avatar eq-logo" style="width: 48px; height: 48px; border-radius: 10px; {% if e.logo %}background-image: url('{{ e.logo.url }}');{% endif %}">
+                {% if not e.logo %}<span>{{ e.initiales }}</span>{% endif %}
+              </div>
+              <div>
+                <strong style="font-size: 15px; color: var(--text); display: block;">{{ e.nom }}</strong>
+                <small style="color: var(--muted); font-size: 12.5px;">{{ e.ville }}{% if e.pays %} · {{ e.pays }}{% endif %}</small>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <span class="coach-badge-type" style="font-size: 12px; padding: 4px 10px;">
+                {% icon "users" %} {{ e.nb_joueurs }} joueur{{ e.nb_joueurs|pluralize }}
+              </span>
+              <a href="{% url 'equipes:detail' e.pk %}" class="btn btn-ghost" style="padding: 6px 12px; font-size: 12px;">
+                {% icon "shield" %} <span>Fiche</span>
+              </a>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div style="text-align: center; padding: 40px 20px; background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 14px;">
+        <p style="color: var(--muted); font-size: 14px; margin: 0;">Ce président ne dirige actuellement aucune équipe.</p>
+      </div>
+    {% endif %}
+  </section>
+</div>
+
+{# =================== ACTIONS EN BAS DE FICHE =================== #}
+{# Conserver UNIQUEMENT le bouton Modifier (sans bouton Supprimer) #}
+<div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+  <a href="{% url 'presidents:modifier' president.pk %}" class="btn btn-primary magnetic" style="padding: 12px 28px; font-size: 15px;">
+    {% icon "pencil" %} <span>Modifier le président</span>
+  </a>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) {
+      gsap.from(".fiche-box", { y: 20, opacity: 0, duration: 0.45, stagger: 0.12, ease: "power2.out" });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "competitionApp/base_matchs.html" %}
+{% load static footlab %}
+
+{% block titre %}Calendrier des matchs{% endblock %}
+
+{% block contenu %}
+{# =================== HERO & KPIS =================== #}
+<section class="hero" id="hero-matchs">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>Saison {{ saison }} · FootLab Pro</p>
+    <h1 class="hero-title" data-split>Calendrier<br><span class="hero-title-2">des matchs</span></h1>
+    <p class="hero-sub">Planification des rencontres, suivi des scores en direct et chronologie des événements.</p>
+    {% if peut_gerer %}
+    <div class="hero-actions">
+      <a class="btn btn-primary magnetic" href="{% url 'competitionApp:match_create' %}">
+        <span class="btn-ic">{% icon "plus" %}</span>
+        <span>Planifier un match</span>
+      </a>
+      <a class="btn btn-ghost" href="{% url 'competitionApp:competition_create' %}">
+        {% icon "trophy" %}
+        <span>Nouvelle compétition</span>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <aside class="hero-kpis" aria-label="Statistiques du calendrier">
+    <div class="kpi-card">
+      <span class="kpi-label">Matchs affichés</span>
+      <b class="kpi-num">{{ nb_total }}</b>
+      <small class="kpi-sub">rencontres</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Programmés</span>
+      <b class="kpi-num">{{ nb_programmes }}</b>
+      <small class="kpi-sub">à venir</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Terminés</span>
+      <b class="kpi-num">{{ nb_termines }}</b>
+      <small class="kpi-sub">{{ nb_valides }} validé{{ nb_valides|pluralize }}</small>
+    </div>
+  </aside>
+</section>
+
+{# =================== BARRE D'OUTILS & FILTRES =================== #}
+<section class="comp-toolbar" aria-label="Filtres des matchs">
+  <form method="get" class="comp-filters" action="{% url 'competitionApp:match_list' %}">
+    <div class="comp-select-wrap">
+      {% icon "trophy" %}
+      <select name="competition" class="comp-select" onchange="this.form.submit()">
+        <option value="">Toutes les compétitions</option>
+        {% for c in competitions %}
+          <option value="{{ c.pk }}" {% if competition_choisie == c.pk|stringformat:"s" %}selected{% endif %}>
+            {{ c.nom }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="comp-select-wrap">
+      {% icon "activity" %}
+      <select name="statut" class="comp-select" onchange="this.form.submit()">
+        <option value="">Tous les statuts</option>
+        {% for code, label in statuts %}
+          <option value="{{ code }}" {% if statut_choisi == code %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <noscript>
+      <button type="submit" class="btn btn-ghost" style="height: 44px; padding: 0 16px;">Filtrer</button>
+    </noscript>
+
+    {% if competition_choisie or statut_choisi %}
+      <a href="{% url 'competitionApp:match_list' %}" class="btn btn-ghost" style="height: 44px; padding: 0 16px;" title="Réinitialiser les filtres">
+        {% icon "x" %}
+        <span>Effacer filtres</span>
+      </a>
+    {% endif %}
+  </form>
+
+  {% if prochain_match %}
+    <div class="badge-valide" style="background: rgba(212, 255, 58, .12); color: var(--lime); border-color: rgba(212, 255, 58, .3); padding: 8px 14px; font-size: 12.5px;">
+      {% icon "calendar" %}
+      <span>Prochain : <strong>{{ prochain_match.equipe_domicile.nom }} vs {{ prochain_match.equipe_exterieur.nom }}</strong> ({{ prochain_match.date_heure|date:"d/m · H:i" }})</span>
+    </div>
+  {% endif %}
+</section>
+
+{# =================== LISTE DES MATCHS =================== #}
+<section aria-label="Grille des matchs">
+  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 8px;">
+    <h2 style="font-family: var(--display); font-weight: 800; font-size: 26px; text-transform: uppercase;">
+      Rencontres <em>({{ match_list|length }})</em>
+    </h2>
+  </div>
+
+  <div class="match-grid">
+    {% for match in match_list %}
+      {% include "competitionApp/_carte_match.html" %}
+    {% empty %}
+      <div style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; background: var(--surface); border: 1px dashed var(--line-2); border-radius: var(--radius);">
+        <p style="font-size: 16px; color: var(--text-2); margin-bottom: 16px;">Aucun match ne correspond aux critères sélectionnés.</p>
+        {% if peut_gerer %}
+          <a class="btn btn-primary" href="{% url 'competitionApp:match_create' %}">
+            <span class="btn-ic">{% icon "plus" %}</span>
+            <span>Planifier le premier match</span>
+          </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

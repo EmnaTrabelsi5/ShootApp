@@ -1,0 +1,635 @@
+/* =========================================================
+   YALLA • Modules Équipes & Présidents
+   Complète entraineurs.css (même charte) : seuls les éléments
+   propres à ces deux modules sont définis ici.
+   ========================================================= */
+
+/* ---------- Navigation active jaune ---------- */
+.rail-link.active {
+  background: var(--yellow, #ffd500) !important;
+  color: #071108 !important;
+  box-shadow: 0 10px 28px -6px rgba(255, 213, 0, .5) !important;
+}
+.rail-link.active svg {
+  stroke: #071108 !important;
+  color: #071108 !important;
+}
+.rail-link.active span {
+  color: #071108 !important;
+  font-weight: 700 !important;
+}
+
+/* ---------- KPI Cards (Même style exact que les Matchs) ---------- */
+.hero-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  min-width: 360px;
+}
+
+.kpi-card {
+  padding: 18px 20px;
+  border-radius: var(--radius, 16px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  transition: border-color .2s var(--ease), transform .2s var(--ease);
+}
+
+.kpi-card:hover {
+  border-color: var(--line-2);
+  transform: translateY(-2px);
+}
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.kpi-num {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 40px;
+  line-height: 1.05;
+  margin: 4px 0 2px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.kpi-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Barre de recherche simple ---------- */
+.eq-filters-simple {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  flex: 1;
+}
+
+.coach-search-box {
+  position: relative;
+  flex: 1;
+  min-width: 260px;
+}
+
+.coach-search-box svg {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.coach-search-box input {
+  width: 100%;
+  height: 48px;
+  padding: 0 40px 0 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14.5px;
+  transition: all .2s var(--ease);
+}
+
+.coach-search-box input:focus {
+  outline: none;
+  border-color: var(--coach-green);
+  box-shadow: 0 0 0 4px rgba(31, 122, 58, .15);
+}
+
+.clear-search {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#equipes-resultats,
+#presidents-resultats {
+  transition: opacity .15s;
+}
+
+#equipes-resultats.is-loading,
+#presidents-resultats.is-loading {
+  opacity: .45;
+  pointer-events: none;
+}
+
+mark.highlight {
+  background: rgba(212, 255, 58, .55);
+  color: inherit;
+  border-radius: 4px;
+  padding: 0 2px;
+}
+
+/* ---------- Logo d'équipe : image entière, sans rognage ---------- */
+.eq-logo[style*="background-image"] {
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-color: #fff;
+}
+
+.eq-logo[style*="background-image"] span {
+  display: none;
+}
+
+/* ---------- Pagination ---------- */
+.eq-pagination {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 8px 0 40px;
+}
+
+/* ---------- ID Badge Équipe ---------- */
+.eq-id-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 18px;
+  background: rgba(31, 122, 58, 0.08);
+  border: 1px solid rgba(31, 122, 58, 0.25);
+  border-radius: 12px;
+  margin-bottom: 22px;
+}
+
+.eq-id-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.eq-id-val {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 22px;
+  color: var(--coach-green, #1f7a3a);
+}
+
+.eq-id-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ---------- Uploader Photo / Logo tout en haut ---------- */
+.top-media-uploader {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 20px 24px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: 16px;
+  margin-bottom: 24px;
+}
+
+.top-media-preview-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.top-media-preview {
+  width: 90px;
+  height: 90px;
+  border-radius: 14px;
+  border: 2px dashed var(--line-2);
+  background: var(--surface) center / contain no-repeat;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  overflow: hidden;
+}
+
+.top-media-preview.is-round {
+  border-radius: 50%;
+  background-size: cover;
+}
+
+.top-media-preview svg {
+  width: 32px;
+  height: 32px;
+}
+
+.top-media-preview[style*="background-image"] span,
+.top-media-preview[style*="background-image"] svg {
+  display: none;
+}
+
+.top-media-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+}
+
+.top-media-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.top-media-btns {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-upload-file {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.btn-upload-file:hover {
+  border-color: var(--coach-green);
+  color: var(--coach-green);
+}
+
+.btn-upload-file input[type="file"] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+}
+
+.btn-remove-media {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: rgba(244, 63, 94, 0.08);
+  border: 1px solid rgba(244, 63, 94, 0.25);
+  color: var(--red, #f43f5e);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+
+.btn-remove-media:hover {
+  background: rgba(244, 63, 94, 0.16);
+}
+
+/* ---------- Messages d'erreur dynamiques en rouge ---------- */
+.form-error {
+  display: block;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--red, #f43f5e);
+  margin-top: 6px;
+  line-height: 1.35;
+}
+
+.form-error.is-hidden {
+  display: none !important;
+}
+
+.eq-form .input-wrap {
+  position: relative;
+}
+
+.eq-form .input-wrap > svg.lucide:first-child {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.eq-form .input-wrap input,
+.eq-form .input-wrap select,
+.eq-form .input-wrap textarea {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px 0 44px;
+  border-radius: 12px;
+  border: 1px solid var(--line-2);
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  transition: all .2s var(--ease);
+}
+
+.eq-form .input-wrap textarea {
+  height: auto;
+  padding: 12px 14px;
+  resize: vertical;
+}
+
+.eq-form .input-wrap input:focus,
+.eq-form .input-wrap select:focus,
+.eq-form .input-wrap textarea:focus {
+  outline: none;
+  border-color: var(--coach-green);
+  box-shadow: 0 0 0 4px rgba(31, 122, 58, .14);
+  background: #fff;
+}
+
+.eq-form input.is-invalid,
+.eq-form select.is-invalid,
+.eq-form textarea.is-invalid {
+  border-color: var(--red, #f43f5e) !important;
+  background-color: rgba(244, 63, 94, 0.04) !important;
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15) !important;
+}
+
+.eq-form input.is-valid,
+.eq-form select.is-valid,
+.eq-form textarea.is-valid {
+  border-color: #22c55e !important;
+}
+
+/* ---------- Multi-Pickers pour Joueurs, Staff, Scouts ---------- */
+.multi-picker {
+  border: 1px solid var(--line-2);
+  border-radius: 14px;
+  background: var(--surface-2);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+
+.multi-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.multi-picker-search {
+  position: relative;
+  flex: 1;
+}
+
+.multi-picker-search input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px 0 36px;
+  border-radius: 10px;
+  border: 1px solid var(--line-2);
+  background: var(--surface);
+  font-size: 13px;
+  color: var(--text);
+}
+
+.multi-picker-search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 15px;
+  height: 15px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.multi-picker-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--coach-green);
+  white-space: nowrap;
+}
+
+.multi-picker-grid {
+  max-height: 230px;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.multi-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--line-2);
+  cursor: pointer;
+  transition: all .15s ease;
+  user-select: none;
+}
+
+.multi-picker-item:hover {
+  border-color: var(--coach-green);
+  transform: translateY(-1px);
+}
+
+.multi-picker-item.is-selected {
+  background: rgba(31, 122, 58, 0.1);
+  border-color: var(--coach-green);
+}
+
+.multi-picker-item input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--coach-green);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.multi-picker-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.multi-picker-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.multi-picker-sub {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---------- Fiche détaillée : Deux Cadres Distincts ---------- */
+.fiche-two-frames {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .fiche-two-frames {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fiche-box {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 24px 28px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.fiche-box-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--display);
+  font-size: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.fiche-box-title svg {
+  width: 22px;
+  height: 22px;
+  color: var(--coach-green);
+}
+
+.fiche-meta-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fiche-meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 10px;
+  border-bottom: 1px dashed var(--line-2);
+  gap: 16px;
+}
+
+.fiche-meta-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.fiche-meta-row dt {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.fiche-meta-row dd {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  text-align: right;
+  margin: 0;
+}
+
+.fiche-members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.fiche-member-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--line-2);
+  border-radius: 12px;
+  gap: 12px;
+}
+
+.fiche-member-info strong {
+  display: block;
+  font-size: 13.5px;
+  color: var(--text);
+}
+
+.fiche-member-info small {
+  display: block;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fiche-member-address {
+  font-size: 11.5px;
+  color: var(--coach-green);
+  margin-top: 2px;
+}
+
+/* ---------- Force du mot de passe ---------- */
+.eq-strength {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 8px;
+}
+
+.eq-strength[hidden] {
+  display: none;
+}
+
+.eq-strength i {
+  flex: 0 0 38px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--line-2);
+  transition: background .2s;
+}
+
+.eq-strength span {
+  margin-left: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.eq-strength[data-level="1"] i:nth-child(-n+1) { background: #f43f5e; }
+.eq-strength[data-level="2"] i:nth-child(-n+2) { background: #f59e0b; }
+.eq-strength[data-level="3"] i:nth-child(-n+3) { background: #84cc16; }
+.eq-strength[data-level="4"] i:nth-child(-n+4) { background: var(--coach-green); }

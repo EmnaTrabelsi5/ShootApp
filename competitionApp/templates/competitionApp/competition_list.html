@@ -1,0 +1,94 @@
+{% extends "competitionApp/base_matchs.html" %}
+{% load static footlab %}
+
+{% block titre %}Compétitions{% endblock %}
+
+{% block contenu %}
+{# =================== HERO & ACTIONS =================== #}
+<section class="hero" id="hero-competitions">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>Saison {{ saison }} · Tournois &amp; Ligues</p>
+    <h1 class="hero-title" data-split>Compétitions<br><span class="hero-title-2">officielles</span></h1>
+    <p class="hero-sub">Championnats nationaux, coupes et matchs amicaux avec suivi des équipes engagées.</p>
+    {% if peut_gerer %}
+    <div class="hero-actions">
+      <a class="btn btn-primary magnetic" href="{% url 'competitionApp:competition_create' %}">
+        <span class="btn-ic">{% icon "plus" %}</span>
+        <span>Nouvelle compétition</span>
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <aside class="hero-kpis" aria-label="Statistiques des compétitions">
+    <div class="kpi-card">
+      <span class="kpi-label">Compétitions</span>
+      <b class="kpi-num">{{ competition_list|length }}</b>
+      <small class="kpi-sub">tournois actifs</small>
+    </div>
+  </aside>
+</section>
+
+{# =================== GRILLE DES COMPÉTITIONS =================== #}
+<section aria-label="Liste des compétitions">
+  <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+    <h2 style="font-family: var(--display); font-weight: 800; font-size: 26px; text-transform: uppercase;">
+      Toutes les compétitions <em>({{ competition_list|length }})</em>
+    </h2>
+  </div>
+
+  <div class="comp-grid">
+    {% for comp in competition_list %}
+      <article class="comp-card" id="competition-{{ comp.pk }}">
+        <div class="comp-card-banner" {% if comp.photo %}style="background-image: linear-gradient(180deg, rgba(15,33,24,.3), rgba(15,33,24,.85)), url('{{ comp.photo.url }}');"{% endif %}>
+          <span class="status-badge" style="background: rgba(37,99,235,.2); color: #93c5fd; border: 1px solid rgba(37,99,235,.4);">
+            {% icon "trophy" %} {{ comp.type }}
+          </span>
+          <span style="font-size: 11.5px; font-weight: 700; color: #fff; background: rgba(0,0,0,.5); padding: 3px 8px; border-radius: 6px;">
+            {{ comp.date_debut|date:"d/m/Y" }} → {{ comp.date_fin|date:"d/m/Y" }}
+          </span>
+        </div>
+
+        <div class="comp-card-body">
+          <h3 class="comp-title">{{ comp.nom }}</h3>
+          <p class="comp-desc">
+            {{ comp.description|default:"Aucune description renseignée pour cette compétition."|truncatewords:20 }}
+          </p>
+
+          <div class="comp-stats-row">
+            <span><b>{{ comp.equipes.count }}</b> équipes</span>
+            <span><b>{{ comp.matchs.count }}</b> matchs</span>
+          </div>
+
+          <div class="match-card-actions">
+            <a href="{% url 'competitionApp:competition_detail' comp.pk %}" class="act-btn">
+              {% icon "eye" %}
+              <span>Détails</span>
+            </a>
+            {% if peut_gerer %}
+              <a href="{% url 'competitionApp:competition_update' comp.pk %}" class="act-btn">
+                {% icon "pencil" %}
+                <span>Modifier</span>
+              </a>
+              <a href="{% url 'competitionApp:competition_delete' comp.pk %}" class="act-btn danger">
+                {% icon "trash" %}
+                <span>Supprimer</span>
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+    {% empty %}
+      <div style="grid-column: 1 / -1; padding: 48px 24px; text-align: center; background: var(--surface); border: 1px dashed var(--line-2); border-radius: var(--radius);">
+        <p style="font-size: 16px; color: var(--text-2); margin-bottom: 16px;">Aucune compétition enregistrée pour le moment.</p>
+        {% if peut_gerer %}
+          <a class="btn btn-primary" href="{% url 'competitionApp:competition_create' %}">
+            <span class="btn-ic">{% icon "plus" %}</span>
+            <span>Créer la première compétition</span>
+          </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,89 @@
+{% load static footlab %}
+{# Fragment AJAX remplacé en direct par la recherche dynamique #}
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+  <h2 class="list-title" style="margin: 0;">Présidents <em>{{ total }}</em></h2>
+  {% if q %}
+    <span class="text-muted" style="font-size: 13.5px; font-weight: 600;">Résultats pour : <strong>« {{ q }} »</strong></span>
+  {% endif %}
+</div>
+
+<div class="coach-grid" id="presidents-grid">
+  {% for p in page %}
+    <article class="coach-card" id="president-{{ p.pk }}">
+      <div class="coach-card-banner">
+        <span class="coach-badge-type">Président</span>
+        {% if p.is_active %}
+          <span class="coach-badge-status has-team">{% icon "check" %} Actif</span>
+        {% else %}
+          <span class="coach-badge-status free">Inactif</span>
+        {% endif %}
+      </div>
+
+      <div class="coach-card-body">
+        {# Photo #}
+        <div class="coach-avatar-row">
+          <div class="coach-avatar" {% if p.photo %}style="background-image: url('{{ p.photo.url }}');"{% endif %}>
+            {% if not p.photo %}<span>{{ p.initiales }}</span>{% endif %}
+          </div>
+          {% if p.date_debut_presidence %}
+            <span style="font-size: 12px; font-weight: 700; color: var(--muted);">Depuis {{ p.date_debut_presidence|date:"d/m/Y" }}</span>
+          {% endif %}
+        </div>
+
+        {# Nom & Prénom #}
+        <h3 class="coach-name">{{ p.prenom }} {{ p.nom }}</h3>
+
+        {# Adresse #}
+        <p class="coach-function">
+          {% icon "map-pin" %} {{ p.adresse|default:"Adresse non renseignée" }}
+        </p>
+
+        {# Date de début de présidence #}
+        <div class="coach-details">
+          <div class="coach-detail-item">
+            {% icon "calendar" %}
+            <span><strong>Début :</strong> {{ p.date_debut_presidence|date:"d/m/Y"|default:"Non renseigné" }}</span>
+          </div>
+        </div>
+
+        {# Actions : Fiche et Supprimer uniquement (pas de bouton Modifier sur la carte) #}
+        <div class="coach-card-actions">
+          <a class="act act-view" href="{% url 'presidents:detail' p.pk %}" style="flex: 1; justify-content: center;">
+            {% icon "user" %} <span>Fiche</span>
+          </a>
+          {% if user.pk != p.pk %}
+            <a class="act act-del" href="{% url 'presidents:supprimer' p.pk %}" title="Supprimer {{ p.prenom }} {{ p.nom }}">
+              {% icon "trash" %}
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </article>
+  {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--line-2); border-radius: 20px;">
+      <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center; background: rgba(31, 122, 58, .1); color: var(--coach-green);">
+        {% icon "award" %}
+      </div>
+      <h3 style="font-family: var(--display); font-size: 24px; text-transform: uppercase;">Aucun président trouvé</h3>
+      <p style="color: var(--muted); font-size: 14.5px; max-width: 440px; margin: 8px auto 20px;">
+        {% if filtre_actif %}Aucun président ne correspond à « {{ q }} ». Modifiez votre recherche.{% else %}Aucun président n'a encore été créé.{% endif %}
+      </p>
+      {% if not filtre_actif %}
+        <a class="btn btn-primary" href="{% url 'presidents:creer' %}">
+          <span class="btn-ic">{% icon "plus" %}</span><span>Ajouter un président</span>
+        </a>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+{% if page.has_other_pages %}
+<nav class="eq-pagination" aria-label="Pagination">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}{% if qs %}&{{ qs }}{% endif %}" class="coach-chip" data-page>« Précédent</a>{% endif %}
+  {% for num in page.paginator.page_range %}
+    {% if page.number == num %}<span class="coach-chip is-active">{{ num }}</span>
+    {% elif num > page.number|add:"-3" and num < page.number|add:"3" %}<a href="?page={{ num }}{% if qs %}&{{ qs }}{% endif %}" class="coach-chip" data-page>{{ num }}</a>{% endif %}
+  {% endfor %}
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}{% if qs %}&{{ qs }}{% endif %}" class="coach-chip" data-page>Suivant »</a>{% endif %}
+</nav>
+{% endif %}

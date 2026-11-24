@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Supprimer l'entraîneur {{ entraineur.prenom }} {{ entraineur.nom }} • YALLA{% endblock %}
+{% block nav_entraineur %}active{% endblock %}
+
+{% block content %}
+<div class="dialog-wrap" style="position: relative; min-height: 480px; display: grid; place-items: center;">
+  <div class="dialog" style="background: var(--surface); border: 1px solid rgba(244,63,94,.35); box-shadow: 0 20px 50px -15px rgba(244,63,94,.25);">
+    <div class="dialog-ic" style="background: rgba(244,63,94,.12); color: var(--red);">
+      {% icon "trash" %}
+    </div>
+
+    <h1 style="font-family: var(--display); font-weight: 800; font-size: 28px; text-transform: uppercase; line-height: 1.1; margin-bottom: 10px;">
+      Supprimer l'entraîneur ?
+    </h1>
+
+    <p style="color: var(--text-2); font-size: 14.5px; margin-bottom: 8px;">
+      Êtes-vous certain de vouloir supprimer le profil de <strong>{{ entraineur.prenom }} {{ entraineur.nom }}</strong> ?
+    </p>
+
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 24px;">
+      Cette action supprimera définitivement le compte utilisateur associé (<strong>{{ entraineur.email }}</strong>) et libérera son équipe s'il en a une.
+    </p>
+
+    <form method="post" action="{% url 'entraineur:supprimer' entraineur.pk %}">
+      {% csrf_token %}
+      <div class="dialog-actions" style="display: flex; gap: 12px; justify-content: center;">
+        <a href="{% url 'entraineur:detail' entraineur.pk %}" class="btn btn-ghost">
+          Annuler
+        </a>
+        <button type="submit" class="btn btn-primary" style="background: var(--red); border-color: var(--red);">
+          {% icon "trash" %}
+          <span>Confirmer la suppression</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) {
+      gsap.from(".dialog", { scale: 0.92, opacity: 0, duration: 0.35, ease: "back.out(1.5)" });
+    }
+  });
+</script>
+{% endblock %}

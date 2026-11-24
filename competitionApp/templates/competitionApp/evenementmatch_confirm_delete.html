@@ -1,0 +1,45 @@
+{% extends "competitionApp/base_matchs.html" %}
+{% load static footlab %}
+
+{% block titre %}Supprimer l'événement{% endblock %}
+
+{% block contenu %}
+<div class="dialog-wrap">
+  <div class="dialog-box">
+    <div class="dialog-ic">
+      {% icon "trash" %}
+    </div>
+
+    <h1 style="font-family: var(--display); font-weight: 800; font-size: 28px; text-transform: uppercase; line-height: 1.1; margin-bottom: 10px;">
+      Supprimer cet événement ?
+    </h1>
+
+    <p style="color: var(--text); font-size: 16px; margin-bottom: 6px;">
+      <strong>{{ object.get_type_evenement_display }}</strong> à la <strong>{{ object.minute }}e minute</strong>
+      {% if object.minute_additionnelle %}+{{ object.minute_additionnelle }}{% endif %}
+      {% if object.joueur %} — <strong>{{ object.joueur }}</strong>{% endif %}
+    </p>
+
+    <p style="color: var(--text-2); font-size: 14px; margin-bottom: 12px;">
+      Équipe : <strong>{{ object.equipe.nom }}</strong>
+    </p>
+
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 24px;">
+      Match : {{ match }}
+    </p>
+
+    <form method="post">
+      {% csrf_token %}
+      <div class="dialog-actions">
+        <a href="{% url 'competitionApp:match_detail' match.pk %}" class="btn btn-ghost">
+          Annuler
+        </a>
+        <button type="submit" class="btn btn-primary" style="background: var(--red); border-color: var(--red);">
+          {% icon "trash" %}
+          <span>Confirmer la suppression</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

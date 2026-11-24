@@ -1,0 +1,55 @@
+{% load static footlab %}
+{# =================== FICHE DU JOUEUR (maillot décroché) =================== #}
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="kit-shade-x" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0" stop-color="#000" stop-opacity=".5"/><stop offset=".2" stop-color="#000" stop-opacity=".1"/>
+      <stop offset=".5" stop-color="#fff" stop-opacity=".1"/><stop offset=".8" stop-color="#000" stop-opacity=".1"/>
+      <stop offset="1" stop-color="#000" stop-opacity=".55"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<div class="fx-wrap" id="casier" hidden>
+  <div class="fx-backdrop" data-close-casier></div>
+  <div class="fx" role="dialog" aria-modal="true" aria-labelledby="fx-nom">
+    <div class="fx-stage">
+      <button type="button" class="fx-kit" id="fx-kit" aria-label="Tourner le maillot">
+        <span class="fx-flip" id="fx-flip">
+          <span class="fx-face fx-face-back" id="cs-kit"></span>
+          <span class="fx-face fx-face-front" id="fx-front"></span>
+        </span>
+      </button>
+    </div>
+
+    <section class="fx-sheet">
+      <header class="fx-head">
+        <span class="fx-k">Fiche joueur</span>
+        <span class="fx-badge">Saison {{ saison }}</span>
+        <span class="fx-count" id="cs-pos"></span>
+      </header>
+      <div class="fx-id">
+        <div class="fx-num"><small id="cs-poste"></small><b id="fx-num"></b></div>
+        <h2 class="fx-nom" id="fx-nom"><span id="cs-prenom"></span> <b id="cs-nomfam"></b></h2>
+      </div>
+      <dl class="fx-rows">
+        <div><dt>Équipe</dt><dd id="cs-equipe"></dd></div>
+        <div><dt>Naissance</dt><dd id="cs-ne"></dd></div>
+        <div><dt>Taille</dt><dd id="cs-taille"></dd></div>
+        <div><dt>Poids</dt><dd id="cs-poids"></dd></div>
+        <div><dt>Pied fort</dt><dd id="cs-pied"></dd></div>
+        <div><dt>Nationalité</dt><dd id="cs-nat"></dd></div>
+        <div><dt>État</dt><dd><span class="fx-statut" id="cs-statut"></span></dd></div>
+      </dl>
+      {% if peut_modifier %}<a class="fx-edit" id="cs-edit" href="#" data-edit="">{% icon "pencil" %}<span>Modifier la fiche</span></a>{% endif %}
+      <footer class="fx-foot">
+        <button type="button" class="fx-back" data-close-casier>{{ retour_label|default:"Retour à la tringle" }}</button>
+        <button type="button" class="fx-arrow" id="cs-prev" aria-label="Joueur précédent">‹</button>
+        <button type="button" class="fx-arrow" id="cs-next" aria-label="Joueur suivant">›</button>
+      </footer>
+    </section>
+    <p class="fx-hint">Clique sur le maillot pour le tourner · clique dehors pour fermer</p>
+  </div>
+</div>
+{% include "joueurApp/_maillot_face.html" %}
+{{ fiches|json_script:"fiches-joueurs" }}

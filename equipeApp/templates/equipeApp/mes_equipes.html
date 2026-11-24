@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Mon équipe • YALLA{% endblock %}
+{% block nav_mon_equipe %}active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>{{ role_libelle }} · Saison {{ saison }}</p>
+    <h1 class="hero-title" data-split>Mon<br><span class="hero-title-2">équipe</span></h1>
+    <p class="hero-sub">Consultez les informations complètes de votre équipe : identité, président, entraîneur, staff, scouts et effectif.</p>
+  </div>
+</section>
+
+{% if equipes %}
+  <div style="display: flex; flex-direction: column; gap: 32px; margin-bottom: 40px;">
+    {% for equipe in equipes %}
+      <article class="fiche-box" style="padding: 30px;">
+        <div class="fiche-two-frames" style="margin-bottom: 0;">
+          {# =================== PREMIÈRE PARTIE : INFORMATIONS GÉNÉRALES =================== #}
+          <div>
+            <h2 class="fiche-box-title">
+              {% icon "shield" %} <span>Informations de l'équipe</span>
+            </h2>
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+              <div class="coach-avatar eq-logo" style="width: 68px; height: 68px; border-radius: 14px; {% if equipe.logo %}background-image: url('{{ equipe.logo.url }}');{% endif %}">
+                {% if not equipe.logo %}<span>{{ equipe.initiales }}</span>{% endif %}
+              </div>
+              <div>
+                <h3 style="font-family: var(--display); font-size: 24px; font-weight: 800; text-transform: uppercase; margin: 0;">
+                  {{ equipe.nom }}
+                </h3>
+                <span class="coach-badge-type" style="margin-top: 4px; display: inline-block;">{{ equipe.niveau|default:"Équipe" }}</span>
+              </div>
+            </div>
+
+            <dl class="fiche-meta-list">
+              <div class="fiche-meta-row"><dt>Pays</dt><dd>{{ equipe.pays|default:"Non renseigné" }}</dd></div>
+              <div class="fiche-meta-row"><dt>Ville</dt><dd>{{ equipe.ville }}</dd></div>
+              <div class="fiche-meta-row"><dt>Niveau</dt><dd>{{ equipe.niveau|default:"Non renseigné" }}</dd></div>
+              <div class="fiche-meta-row">
+                <dt>Site web</dt>
+                <dd>
+                  {% if equipe.site_web %}
+                    <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" style="color: var(--coach-green); font-weight: 700;">{{ equipe.site_web }}</a>
+                  {% else %}
+                    <span style="color: var(--muted);">Non renseigné</span>
+                  {% endif %}
+                </dd>
+              </div>
+              <div class="fiche-meta-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+                <dt>Description</dt>
+                <dd style="text-align: left; font-weight: 400; color: var(--text-2); font-size: 13.5px; line-height: 1.5;">
+                  {{ equipe.description|default:"Aucune description."|linebreaksbr }}
+                </dd>
+              </div>
+            </dl>
+          </div>
+
+          {# =================== DEUXIÈME PARTIE : COMPOSITION DE L'ÉQUIPE =================== #}
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--line-2);">
+              <h2 class="fiche-box-title" style="margin: 0; padding: 0; border: none;">
+                {% icon "users" %} <span>Composition</span>
+              </h2>
+              <span style="font-size: 12.5px; font-weight: 700; color: var(--coach-green);">
+                {{ equipe.joueurs.count }} joueur{{ equipe.joueurs.count|pluralize }}
+              </span>
+            </div>
+
+            <div class="fiche-members-list">
+              {# Président #}
+              <div class="fiche-member-card">
+                <div class="fiche-member-info">
+                  <small>{% icon "award" %} Président</small>
+                  <strong>{% if equipe.president %}{{ equipe.president.nom_complet }}{% else %}Non assigné{% endif %}</strong>
+                  {% if equipe.president and equipe.president.adresse %}
+                    <span class="fiche-member-address">{% icon "map-pin" %} {{ equipe.president.adresse }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              {# Entraîneur #}
+              <div class="fiche-member-card">
+                <div class="fiche-member-info">
+                  <small>{% icon "clipboard" %} Entraîneur</small>
+                  <strong>{% if equipe.entraineur %}{{ equipe.entraineur.prenom }} {{ equipe.entraineur.nom }}{% else %}Non assigné{% endif %}</strong>
+                  {% if equipe.entraineur and equipe.entraineur.adresse %}
+                    <span class="fiche-member-address">{% icon "map-pin" %} {{ equipe.entraineur.adresse }}</span>
+                  {% endif %}
+                </div>
+              </div>
+
+              {# Staff #}
+              <div class="fiche-member-card">
+                <div class="fiche-member-info">
+                  <small>{% icon "briefcase" %} Staff technique</small>
+                  <strong>
+                    {% for s in equipe.staff.all %}
+                      {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                      Aucun
+                    {% endfor %}
+                  </strong>
+                </div>
+              </div>
+
+              {# Scouts #}
+              <div class="fiche-member-card">
+                <div class="fiche-member-info">
+                  <small>{% icon "binoculars" %} Scouts</small>
+                  <strong>
+                    {% for s in equipe.scouts.all %}
+                      {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                      Aucun
+                    {% endfor %}
+                  </strong>
+                </div>
+              </div>
+
+              {# Nombre total de joueurs et bouton vers la fiche #}
+              <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 13px; font-weight: 700; color: var(--text);">
+                  Effectif total : <strong>{{ equipe.joueurs.count }} joueur(s)</strong>
+                </span>
+                <a class="btn btn-primary magnetic" href="{% url 'equipes:detail' equipe.pk %}" style="padding: 6px 16px; font-size: 13px;">
+                  {% icon "shield" %} <span>Voir la fiche complète</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+    {% endfor %}
+  </div>
+{% else %}
+  <div style="text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--line-2); border-radius: 20px; max-width: 640px; margin: 0 auto;">
+    <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center; background: rgba(31, 122, 58, .1); color: var(--coach-green);">
+      {% icon "shield" %}
+    </div>
+    <h3 style="font-family: var(--display); font-size: 24px; text-transform: uppercase;">Aucune équipe pour le moment</h3>
+    <p style="color: var(--muted); font-size: 14.5px; max-width: 440px; margin: 8px auto 0;">Vous n'êtes actuellement rattaché à aucune équipe. Contactez l'administrateur du club.</p>
+  </div>
+{% endif %}
+{% endblock %}

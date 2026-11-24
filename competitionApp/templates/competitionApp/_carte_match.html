@@ -1,0 +1,68 @@
+{% load static footlab %}
+<article class="match-card {% if match == prochain_match %}is-prochain{% endif %}" id="match-{{ match.pk }}">
+  <header class="match-card-head">
+    <span class="match-comp-pill" title="{{ match.competition.nom }}">
+      {% icon "trophy" %} {{ match.competition.nom }}
+    </span>
+    <span class="status-badge status-{{ match.statut|lower }}">
+      {% if match.statut == "EN_COURS" %}<span class="live-dot"></span>{% endif %}
+      {{ match.get_statut_display }}
+    </span>
+  </header>
+
+  <div class="match-clash">
+    <div class="match-team domicile">
+      {% include "competitionApp/_ecusson.html" with equipe=match.equipe_domicile %}
+      <span class="team-name">{{ match.equipe_domicile.nom }}</span>
+      <span class="team-side">Domicile</span>
+    </div>
+
+    <div class="match-score-wrap">
+      {% if match.score_domicile is not None and match.score_exterieur is not None %}
+        <span class="match-score">{{ match.score_domicile }} - {{ match.score_exterieur }}</span>
+      {% else %}
+        <span class="match-score vs">VS</span>
+      {% endif %}
+      <span class="match-time">{{ match.date_heure|date:"H:i" }}</span>
+    </div>
+
+    <div class="match-team exterieur">
+      {% include "competitionApp/_ecusson.html" with equipe=match.equipe_exterieur %}
+      <span class="team-name">{{ match.equipe_exterieur.nom }}</span>
+      <span class="team-side">Extérieur</span>
+    </div>
+  </div>
+
+  <footer class="match-card-meta">
+    <span class="match-meta-item">
+      {% icon "calendar" %}
+      <span>{{ match.date_heure|date:"D d M Y" }}</span>
+    </span>
+    <span class="match-meta-item">
+      {% icon "map-pin" %}
+      <span>{{ match.lieu|default:"Lieu à définir"|truncatechars:22 }}</span>
+    </span>
+    {% if match.est_valide %}
+      <span class="badge-valide" title="Résultat validé par {{ match.valide_par }}">
+        {% icon "check" %} Validé
+      </span>
+    {% endif %}
+  </footer>
+
+  <div class="match-card-actions">
+    <a href="{% url 'competitionApp:match_detail' match.pk %}" class="act-btn">
+      {% icon "eye" %}
+      <span>Détails</span>
+    </a>
+    {% if peut_gerer and not match.est_valide %}
+      <a href="{% url 'competitionApp:match_update' match.pk %}" class="act-btn">
+        {% icon "pencil" %}
+        <span>Modifier</span>
+      </a>
+      <a href="{% url 'competitionApp:match_delete' match.pk %}" class="act-btn danger">
+        {% icon "trash" %}
+        <span>Supprimer</span>
+      </a>
+    {% endif %}
+  </div>
+</article>

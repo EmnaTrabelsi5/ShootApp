@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}{{ equipe.nom }} • Fiche détaillée • YALLA{% endblock %}
+{% block nav_equipes %}{% if peut_gerer %}active{% endif %}{% endblock %}
+{% block nav_mon_equipe %}{% if not peut_gerer %}active{% endif %}{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+{% if peut_gerer %}
+<div style="margin-bottom: 20px;">
+  <a href="{% url 'equipes:liste' %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+    {% icon "arrow-left" %} <span>Retour aux équipes</span>
+  </a>
+</div>
+{% endif %}
+
+<div class="fiche-two-frames">
+  {# =================== CADRE 1 : INFORMATIONS GÉNÉRALES =================== #}
+  <section class="fiche-box">
+    <h2 class="fiche-box-title">
+      {% icon "shield" %} <span>Cadre 1 – Informations générales</span>
+    </h2>
+
+    <div style="display: flex; align-items: center; gap: 18px; margin-bottom: 22px;">
+      <div class="coach-avatar eq-logo" style="width: 72px; height: 72px; border-radius: 16px; {% if equipe.logo %}background-image: url('{{ equipe.logo.url }}');{% endif %}">
+        {% if not equipe.logo %}<span>{{ equipe.initiales }}</span>{% endif %}
+      </div>
+      <div>
+        <h1 style="font-family: var(--display); font-size: 28px; font-weight: 800; text-transform: uppercase; margin: 0; line-height: 1.1;">
+          {{ equipe.nom }}
+        </h1>
+        <span class="coach-badge-type" style="margin-top: 6px; display: inline-block;">
+          {{ equipe.niveau|default:"Équipe" }}
+        </span>
+      </div>
+    </div>
+
+    <dl class="fiche-meta-list">
+      <div class="fiche-meta-row">
+        <dt>Nom de l'équipe</dt>
+        <dd>{{ equipe.nom }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Niveau</dt>
+        <dd>{{ equipe.niveau|default:"Non renseigné" }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Pays</dt>
+        <dd>{{ equipe.pays|default:"Non renseigné" }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Ville</dt>
+        <dd>{{ equipe.ville }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Date de création</dt>
+        <dd>{{ equipe.date_creation|date:"d/m/Y"|default:"Non renseignée" }}</dd>
+      </div>
+      <div class="fiche-meta-row">
+        <dt>Site web</dt>
+        <dd>
+          {% if equipe.site_web %}
+            <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" style="color: var(--coach-green); font-weight: 700; text-decoration: underline;">
+              {{ equipe.site_web }}
+            </a>
+          {% else %}
+            <span style="color: var(--muted); font-weight: 500;">Non renseigné</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div class="fiche-meta-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
+        <dt>Description</dt>
+        <dd style="text-align: left; font-weight: 400; color: var(--text-2); font-size: 14px; line-height: 1.6;">
+          {{ equipe.description|default:"Aucune description renseignée."|linebreaksbr }}
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  {# =================== CADRE 2 : COMPOSITION DE L'ÉQUIPE =================== #}
+  <section class="fiche-box">
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--line-2);">
+      <h2 class="fiche-box-title" style="margin: 0; padding: 0; border: none;">
+        {% icon "users" %} <span>Cadre 2 – Composition de l'équipe</span>
+      </h2>
+      <span style="font-size: 13px; font-weight: 700; color: var(--coach-green);">
+        Total : {{ nb_joueurs }} joueur{{ nb_joueurs|pluralize }}
+      </span>
+    </div>
+
+    <div class="fiche-members-list">
+      {# Président #}
+      <div class="fiche-member-card">
+        <div class="fiche-member-info">
+          <small>{% icon "award" %} Président</small>
+          <strong>{% if president %}{{ president.nom_complet }}{% else %}Non assigné{% endif %}</strong>
+          {% if president and president.adresse %}
+            <span class="fiche-member-address">{% icon "map-pin" %} {{ president.adresse }}</span>
+          {% endif %}
+        </div>
+        {% if president %}
+          <a href="{% url 'presidents:detail' president.pk %}" class="btn btn-ghost" style="font-size: 11px; padding: 4px 10px;">Fiche</a>
+        {% endif %}
+      </div>
+
+      {# Entraîneur #}
+      <div class="fiche-member-card">
+        <div class="fiche-member-info">
+          <small>{% icon "clipboard" %} Entraîneur principal</small>
+          <strong>{% if entraineur %}{{ entraineur.prenom }} {{ entraineur.nom }} ({{ entraineur.get_type_display|default:"Principal" }}){% else %}Non assigné{% endif %}</strong>
+          {% if entraineur and entraineur.adresse %}
+            <span class="fiche-member-address">{% icon "map-pin" %} {{ entraineur.adresse }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      {# Scout #}
+      <div class="fiche-member-card">
+        <div class="fiche-member-info">
+          <small>{% icon "binoculars" %} Scouts ({{ scouts_membres|length }})</small>
+          <strong>
+            {% for s in scouts_membres %}
+              {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              Aucun scout affecté
+            {% endfor %}
+          </strong>
+        </div>
+      </div>
+
+      {# Staff #}
+      <div class="fiche-member-card">
+        <div class="fiche-member-info">
+          <small>{% icon "briefcase" %} Staff technique ({{ staff_membres|length }})</small>
+          <strong>
+            {% for s in staff_membres %}
+              {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
+            {% empty %}
+              Aucun membre de staff affecté
+            {% endfor %}
+          </strong>
+        </div>
+      </div>
+
+      {# Joueurs affectés #}
+      <div style="margin-top: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <small style="font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Effectif des joueurs ({{ nb_joueurs }})</small>
+        </div>
+        {% if joueurs %}
+          <div style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+            {% for j in joueurs %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 8px;">
+              <div>
+                <strong style="font-size: 13.5px; color: var(--text);">
+                  {% if j.numero_maillot %}#{{ j.numero_maillot }} · {% endif %}{{ j.prenom }} {{ j.nom }}
+                </strong>
+                <small style="display: block; color: var(--muted); font-size: 11.5px;">{{ j.get_poste_display }}</small>
+                {% if j.adresse %}
+                  <span class="fiche-member-address">{% icon "map-pin" %} {{ j.adresse }}</span>
+                {% endif %}
+              </div>
+              <span class="coach-badge-type" style="font-size: 10.5px;">{{ j.get_statut_display }}</span>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="text-align: center; padding: 20px; background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 10px;">
+            <p style="color: var(--muted); font-size: 13px; margin: 0;">Aucun joueur affecté à cette équipe.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+</div>
+
+{# =================== ACTIONS EN BAS DE FICHE =================== #}
+{# Conserver UNIQUEMENT le bouton Modifier (sans bouton Supprimer) #}
+{% if peut_gerer %}
+<div style="display: flex; justify-content: flex-end; margin-top: 10px;">
+  <a href="{% url 'equipes:modifier' equipe.pk %}" class="btn btn-primary magnetic" style="padding: 12px 28px; font-size: 15px;">
+    {% icon "pencil" %} <span>Modifier l'équipe</span>
+  </a>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) {
+      gsap.from(".fiche-box", { y: 20, opacity: 0, duration: 0.45, stagger: 0.12, ease: "power2.out" });
+    }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,107 @@
+{% load static footlab %}
+{# Fragment AJAX remplacé en direct par la recherche par nom #}
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px;">
+  <h2 class="list-title" id="equipes-grid-title" style="margin: 0;">
+    Équipes <em>{{ total }}</em>
+  </h2>
+  {% if q %}
+    <span class="text-muted" style="font-size: 13.5px; font-weight: 600;">Résultats pour : <strong>« {{ q }} »</strong></span>
+  {% endif %}
+</div>
+
+<div class="coach-grid" id="equipes-grid">
+  {% for equipe in page %}
+    <article class="coach-card" id="equipe-{{ equipe.pk }}">
+      <div class="coach-card-banner">
+        <span class="coach-badge-type">{{ equipe.niveau|default:"Équipe" }}</span>
+        {% if equipe.president %}
+          <span class="coach-badge-status has-team" title="Président : {{ equipe.president.nom_complet }}">
+            {% icon "award" %} {{ equipe.president.nom }}
+          </span>
+        {% else %}
+          <span class="coach-badge-status free">Sans président</span>
+        {% endif %}
+      </div>
+
+      <div class="coach-card-body">
+        {# Logo d'équipe #}
+        <div class="coach-avatar-row">
+          <div class="coach-avatar eq-logo" {% if equipe.logo %}style="background-image: url('{{ equipe.logo.url }}');"{% endif %}>
+            {% if not equipe.logo %}<span>{{ equipe.initiales }}</span>{% endif %}
+          </div>
+          {% if equipe.site_web %}
+            <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" class="top-pill" style="font-size: 11.5px; text-decoration: none; color: var(--coach-green);" title="{{ equipe.site_web }}">
+              {% icon "globe" %} <span>Site web</span>
+            </a>
+          {% endif %}
+        </div>
+
+        {# Nom de l'équipe #}
+        <h3 class="coach-name">{{ equipe.nom }}</h3>
+
+        {# Pays & Ville #}
+        <p class="coach-function">
+          {% icon "map-pin" %} {{ equipe.ville }}{% if equipe.pays %} · {{ equipe.pays }}{% endif %}
+        </p>
+
+        {# Informations essentielles uniquement : Président, Entraîneur, Site web #}
+        <div class="coach-details">
+          <div class="coach-detail-item" title="Président">
+            {% icon "award" %}
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <strong>Président :</strong> {% if equipe.president %}{{ equipe.president.nom_complet }}{% else %}Non assigné{% endif %}
+            </span>
+          </div>
+          <div class="coach-detail-item" title="Entraîneur">
+            {% icon "clipboard" %}
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              <strong>Entraîneur :</strong> {% if equipe.entraineur %}{{ equipe.entraineur.prenom }} {{ equipe.entraineur.nom }}{% else %}Non assigné{% endif %}
+            </span>
+          </div>
+          {% if equipe.site_web %}
+          <div class="coach-detail-item" title="Site officiel">
+            {% icon "globe" %}
+            <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" style="color: var(--text-2); text-decoration: underline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              {{ equipe.site_web }}
+            </a>
+          </div>
+          {% endif %}
+        </div>
+
+        {# Actions : Uniquement « Fiche » et « Supprimer » #}
+        <div class="coach-card-actions">
+          <a class="act act-view" href="{% url 'equipes:detail' equipe.pk %}" style="flex: 1; justify-content: center;">
+            {% icon "shield" %} <span>Fiche</span>
+          </a>
+          <a class="act act-del" href="{% url 'equipes:supprimer' equipe.pk %}" title="Supprimer {{ equipe.nom }}">
+            {% icon "trash" %}
+          </a>
+        </div>
+      </div>
+    </article>
+  {% empty %}
+    <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: var(--surface); border: 1px dashed var(--line-2); border-radius: 20px;">
+      <div style="width: 56px; height: 56px; margin: 0 auto 16px; border-radius: 50%; display: grid; place-items: center; background: rgba(31, 122, 58, .1); color: var(--coach-green);">
+        {% icon "shield" %}
+      </div>
+      <h3 style="font-family: var(--display); font-size: 24px; text-transform: uppercase;">Aucune équipe trouvée</h3>
+      <p style="color: var(--muted); font-size: 14.5px; max-width: 440px; margin: 8px auto 20px;">
+        {% if filtre_actif %}Aucune équipe ne correspond au nom « {{ q }} ». Modifiez votre recherche.{% else %}Aucune équipe n'a encore été créée.{% endif %}
+      </p>
+      {% if not filtre_actif %}
+      <a class="btn btn-primary" href="{% url 'equipes:creer' %}"><span class="btn-ic">{% icon "plus" %}</span><span>Créer une équipe</span></a>
+      {% endif %}
+    </div>
+  {% endfor %}
+</div>
+
+{% if page.has_other_pages %}
+<nav class="eq-pagination" aria-label="Pagination">
+  {% if page.has_previous %}<a href="?page={{ page.previous_page_number }}{% if qs %}&{{ qs }}{% endif %}" class="coach-chip" data-page>« Précédent</a>{% endif %}
+  {% for num in page.paginator.page_range %}
+    {% if page.number == num %}<span class="coach-chip is-active">{{ num }}</span>
+    {% elif num > page.number|add:"-3" and num < page.number|add:"3" %}<a href="?page={{ num }}{% if qs %}&{{ qs }}{% endif %}" class="coach-chip" data-page>{{ num }}</a>{% endif %}
+  {% endfor %}
+  {% if page.has_next %}<a href="?page={{ page.next_page_number }}{% if qs %}&{{ qs }}{% endif %}" class="coach-chip" data-page>Suivant »</a>{% endif %}
+</nav>
+{% endif %}

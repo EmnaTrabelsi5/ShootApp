@@ -1,0 +1,252 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}{% if mode == "creer" %}Créer une équipe{% else %}Modifier {{ equipe.nom }}{% endif %} • YALLA{% endblock %}
+{% block nav_equipes %}active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto 20px;">
+  <a href="{% if mode == 'editer' %}{% url 'equipes:detail' equipe.pk %}{% else %}{% url 'equipes:liste' %}{% endif %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+    {% icon "arrow-left" %}
+    <span>{% if mode == 'editer' %}Retour à la fiche{% else %}Retour aux équipes{% endif %}</span>
+  </a>
+</div>
+
+<div class="form-card eq-form">
+  <header style="margin-bottom: 22px;">
+    <p class="eyebrow" style="margin-bottom: 6px;">Administration · Gestion des équipes</p>
+    <h1 style="font-family: var(--display); font-weight: 800; font-size: 38px; text-transform: uppercase; line-height: 1;">
+      {% if mode == "creer" %}Créer une équipe{% else %}Modifier {{ equipe.nom }}{% endif %}
+    </h1>
+    <p style="color: var(--muted); font-size: 15px; margin-top: 6px;">
+      {% if mode == "creer" %}Renseignez l'identité de l'équipe, son logo, son encadrement et affectez ses joueurs.{% else %}Mise à jour de l'équipe, de son encadrement et de ses joueurs.{% endif %}
+    </p>
+  </header>
+
+  {# Consultation automatique de l'ID de l'équipe #}
+  <div class="eq-id-badge">
+    <span class="eq-id-label">ID Équipe</span>
+    <span class="eq-id-val">#{{ id_equipe|default:prochain_id }}</span>
+    <small class="eq-id-sub">{% if mode == "creer" %}(Attribution automatique){% else %}(Identifiant unique){% endif %}</small>
+  </div>
+
+  {% if form.non_field_errors %}
+    <div class="form-alert" style="margin-bottom: 20px;">
+      {% icon "alert" %}
+      <div>{% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}</div>
+    </div>
+  {% endif %}
+
+  <form method="post" enctype="multipart/form-data" novalidate id="equipe-form">
+    {% csrf_token %}
+    {{ form.supprimer_logo }}
+
+    {# =================== 1. LOGO DE L'ÉQUIPE (DÉPLACÉ TOUT EN HAUT) =================== #}
+    <div class="top-media-uploader">
+      <div class="top-media-preview-wrap">
+        <div class="top-media-preview" id="top-media-preview" data-creation="{% if mode == 'creer' %}true{% else %}false{% endif %}" {% if equipe and equipe.logo %}style="background-image: url('{{ equipe.logo.url }}');"{% endif %}>
+          {% if not equipe or not equipe.logo %}
+            <span>{% icon "shield" %}</span>
+          {% endif %}
+        </div>
+      </div>
+      <div class="top-media-controls">
+        <h3 class="top-media-title">Logo de l'équipe <span class="req">* (Obligatoire)</span></h3>
+        <p style="font-size: 12.5px; color: var(--muted); margin: 0;">Sélectionnez, remplacez ou supprimez le logo officiel (JPG ou PNG, 2 Mo max).</p>
+        <div class="top-media-btns">
+          <label class="btn-upload-file">
+            {% icon "upload" %} <span>{% if equipe and equipe.logo %}Remplacer le logo{% else %}Choisir un logo{% endif %}</span>
+            {{ form.logo }}
+          </label>
+          <button type="button" class="btn-remove-media" id="btn-remove-media" title="Supprimer le logo actuel">
+            {% icon "trash" %} <span>Supprimer le logo</span>
+          </button>
+        </div>
+        {% if form.logo.errors %}<span class="form-error" data-for="{{ form.logo.id_for_label }}">{{ form.logo.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    {# =================== IDENTITÉ & COORDONNÉES =================== #}
+    <h2 class="form-section-title">1. Informations de l'équipe</h2>
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="{{ form.nom.id_for_label }}">Nom de l'équipe <span class="req">*</span></label>
+        <div class="input-wrap">{% icon "shield" %}{{ form.nom }}</div>
+        {% if form.nom.errors %}<span class="form-error" data-for="{{ form.nom.id_for_label }}">{{ form.nom.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="{{ form.niveau.id_for_label }}">Niveau <span class="req">*</span></label>
+        <div class="input-wrap">{{ form.niveau }}</div>
+        {% if form.niveau.errors %}<span class="form-error" data-for="{{ form.niveau.id_for_label }}">{{ form.niveau.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="{{ form.pays.id_for_label }}">Pays réel <span class="req">*</span></label>
+        <div class="input-wrap">{% icon "map-pin" %}{{ form.pays }}</div>
+        <datalist id="pays_list">
+          {% for p in pays_liste %}<option value="{{ p }}">{% endfor %}
+        </datalist>
+        <span class="form-help">Doit être un pays réel existant dans le monde.</span>
+        {% if form.pays.errors %}<span class="form-error" data-for="{{ form.pays.id_for_label }}">{{ form.pays.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="{{ form.ville.id_for_label }}">Ville <span class="req">*</span></label>
+        <div class="input-wrap">{% icon "map-pin" %}{{ form.ville }}</div>
+        <datalist id="villes_list"></datalist>
+        <span class="form-help">Doit obligatoirement appartenir au pays choisi.</span>
+        {% if form.ville.errors %}<span class="form-error" data-for="{{ form.ville.id_for_label }}">{{ form.ville.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="{{ form.date_creation.id_for_label }}">Date de création <span class="req">*</span></label>
+        <div class="input-wrap">{% icon "calendar" %}{{ form.date_creation }}</div>
+        {% if form.date_creation.errors %}<span class="form-error" data-for="{{ form.date_creation.id_for_label }}">{{ form.date_creation.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="{{ form.site_web.id_for_label }}">Site web</label>
+        <div class="input-wrap">{% icon "globe" %}{{ form.site_web }}</div>
+        {% if form.site_web.errors %}<span class="form-error" data-for="{{ form.site_web.id_for_label }}">{{ form.site_web.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="field-group full-width">
+      <div>
+        <label class="form-label" for="{{ form.description.id_for_label }}">Description <small id="char-count" style="font-weight: 500; color: var(--muted);">(0 / 500)</small></label>
+        <div class="input-wrap">{{ form.description }}</div>
+        {% if form.description.errors %}<span class="form-error" data-for="{{ form.description.id_for_label }}">{{ form.description.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    {# =================== CADRE 1 : ENCADREMENT TECHNIQUE =================== #}
+    <h2 class="form-section-title">2. Encadrement de l'équipe (Président, Entraîneur, Staff, Scouts)</h2>
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="{{ form.president.id_for_label }}">Président de l'équipe <span class="req">*</span></label>
+        <div class="input-wrap">{% icon "award" %}{{ form.president }}</div>
+        <span class="form-help">Pas encore de président ? <a href="{% url 'presidents:creer' %}" target="_blank" style="color: var(--coach-green); font-weight: 700;">Ajouter un président</a>.</span>
+        {% if form.president.errors %}<span class="form-error" data-for="{{ form.president.id_for_label }}">{{ form.president.errors.0 }}</span>{% endif %}
+      </div>
+      <div>
+        <label class="form-label" for="{{ form.entraineur.id_for_label }}">Entraîneur principal <span class="req">* (Obligatoire)</span></label>
+        <div class="input-wrap">{% icon "clipboard" %}{{ form.entraineur }}</div>
+        <span class="form-help">Une équipe doit obligatoirement avoir un entraîneur.</span>
+        {% if form.entraineur.errors %}<span class="form-error" data-for="{{ form.entraineur.id_for_label }}">{{ form.entraineur.errors.0 }}</span>{% endif %}
+      </div>
+    </div>
+
+    {# Staff Technique (Sélecteur intuitif sans Ctrl+Clic) #}
+    <div style="margin-top: 14px;">
+      <label class="form-label">Staff technique de l'équipe <span style="font-weight: 400; color: var(--muted);">(cliquer pour cocher/décocher)</span></label>
+      <div class="multi-picker" id="picker-staff">
+        <div class="multi-picker-head">
+          <div class="multi-picker-search">
+            {% icon "search" %}
+            <input type="text" placeholder="Filtrer les membres du staff…">
+          </div>
+          <span class="multi-picker-count">0 sélectionné</span>
+        </div>
+        <div class="multi-picker-grid">
+          {% for s in form.staff.field.queryset %}
+            <label class="multi-picker-item" data-name="{{ s.prenom }} {{ s.nom }}">
+              <input type="checkbox" name="staff" value="{{ s.pk }}" {% if s.pk in form.staff.value %}checked{% endif %}>
+              <div class="multi-picker-info">
+                <span class="multi-picker-name">{{ s.prenom }} {{ s.nom }}</span>
+                <small class="multi-picker-sub">Staff technique{% if s.adresse %} · {{ s.adresse }}{% endif %}</small>
+              </div>
+            </label>
+          {% empty %}
+            <p style="grid-column: 1 / -1; color: var(--muted); font-size: 13px; margin: 8px 0;">Aucun membre de staff disponible.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% if form.staff.errors %}<span class="form-error">{{ form.staff.errors.0 }}</span>{% endif %}
+    </div>
+
+    {# Scouts (Sélecteur intuitif sans Ctrl+Clic) #}
+    <div style="margin-top: 14px;">
+      <label class="form-label">Scouts associés <span style="font-weight: 400; color: var(--muted);">(cliquer pour cocher/décocher)</span></label>
+      <div class="multi-picker" id="picker-scouts">
+        <div class="multi-picker-head">
+          <div class="multi-picker-search">
+            {% icon "search" %}
+            <input type="text" placeholder="Filtrer les scouts…">
+          </div>
+          <span class="multi-picker-count">0 sélectionné</span>
+        </div>
+        <div class="multi-picker-grid">
+          {% for sc in form.scouts.field.queryset %}
+            <label class="multi-picker-item" data-name="{{ sc.prenom }} {{ sc.nom }}">
+              <input type="checkbox" name="scouts" value="{{ sc.pk }}" {% if sc.pk in form.scouts.value %}checked{% endif %}>
+              <div class="multi-picker-info">
+                <span class="multi-picker-name">{{ sc.prenom }} {{ sc.nom }}</span>
+                <small class="multi-picker-sub">Scout{% if sc.adresse %} · {{ sc.adresse }}{% endif %}</small>
+              </div>
+            </label>
+          {% empty %}
+            <p style="grid-column: 1 / -1; color: var(--muted); font-size: 13px; margin: 8px 0;">Aucun scout disponible.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% if form.scouts.errors %}<span class="form-error">{{ form.scouts.errors.0 }}</span>{% endif %}
+    </div>
+
+    {# =================== CADRE 2 : JOUEURS AFFECTÉS =================== #}
+    <h2 class="form-section-title" style="margin-top: 32px;">3. Effectif des Joueurs (Affectation multiple)</h2>
+    <div>
+      <label class="form-label">Joueurs de l'équipe <span style="font-weight: 400; color: var(--muted);">(cocher les joueurs à affecter à cette équipe)</span></label>
+      <div class="multi-picker" id="picker-joueurs">
+        <div class="multi-picker-head">
+          <div class="multi-picker-search">
+            {% icon "search" %}
+            <input type="text" placeholder="Rechercher un joueur par nom ou poste…">
+          </div>
+          <span class="multi-picker-count">0 joueur sélectionné</span>
+        </div>
+        <div class="multi-picker-grid">
+          {% for j in form.joueurs.field.queryset %}
+            <label class="multi-picker-item" data-name="{{ j.prenom }} {{ j.nom }} {{ j.get_poste_display }}">
+              <input type="checkbox" name="joueurs" value="{{ j.pk }}" {% if j.pk in form.joueurs.value %}checked{% endif %}>
+              <div class="multi-picker-info">
+                <span class="multi-picker-name">{% if j.numero_maillot %}#{{ j.numero_maillot }} · {% endif %}{{ j.prenom }} {{ j.nom }}</span>
+                <small class="multi-picker-sub">{{ j.get_poste_display }} · {{ j.get_statut_display }}{% if j.adresse %} · {{ j.adresse }}{% endif %}</small>
+              </div>
+            </label>
+          {% empty %}
+            <p style="grid-column: 1 / -1; color: var(--muted); font-size: 13px; margin: 8px 0;">Aucun joueur disponible.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% if form.joueurs.errors %}<span class="form-error">{{ form.joueurs.errors.0 }}</span>{% endif %}
+    </div>
+
+    <div class="form-actions-bar" style="margin-top: 36px;">
+      <a href="{% if mode == 'editer' %}{% url 'equipes:detail' equipe.pk %}{% else %}{% url 'equipes:liste' %}{% endif %}" class="btn btn-ghost">Annuler</a>
+      <button type="submit" class="btn btn-primary magnetic">
+        {% icon "check" %}
+        <span>{% if mode == "creer" %}Créer l'équipe{% else %}Enregistrer les modifications{% endif %}</span>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  window.PAYS_VILLES_DATA = {{ pays_villes_json|safe }};
+</script>
+<script src="{% static 'js/equipes.js' %}?v=2.0" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) gsap.from(".form-card", { y: 20, opacity: 0, duration: 0.45, ease: "power2.out" });
+  });
+</script>
+{% endblock %}

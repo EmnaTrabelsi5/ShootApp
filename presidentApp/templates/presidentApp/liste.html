@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Présidents • YALLA{% endblock %}
+{% block nav_presidents %}active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+{# =================== HERO & STATISTIQUES (STYLE MATCHS) =================== #}
+<section class="hero" id="hero-presidents">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>Administration · Saison {{ saison }}</p>
+    <h1 class="hero-title" data-split>Les présidents<br><span class="hero-title-2">des équipes</span></h1>
+    <p class="hero-sub">Gestion des comptes présidentiels et des équipes dirigées au sein du club.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary magnetic" href="{% url 'presidents:creer' %}">
+        <span class="btn-ic">{% icon "plus" %}</span><span>Ajouter un président</span>
+      </a>
+    </div>
+  </div>
+
+  <aside class="hero-kpis" aria-label="Statistiques des présidents">
+    <div class="kpi-card">
+      <span class="kpi-label">Présidents</span>
+      <b class="kpi-num">{{ stats.total }}</b>
+      <small class="kpi-sub">enregistrés</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Actifs</span>
+      <b class="kpi-num">{{ stats.actifs }}</b>
+      <small class="kpi-sub">comptes actifs</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Libres</span>
+      <b class="kpi-num">{{ stats.sans_equipe }}</b>
+      <small class="kpi-sub">sans équipe</small>
+    </div>
+  </aside>
+</section>
+
+{# =================== BARRE DE RECHERCHE SIMPLE =================== #}
+<section class="coach-toolbar" aria-label="Recherche président">
+  <form class="eq-filters-simple" method="get" action="{% url 'presidents:liste' %}" data-live-search data-target="#presidents-resultats">
+    <div class="coach-search-box">
+      {% icon "search" %}
+      <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par nom ou prénom…" autocomplete="off" aria-label="Rechercher un président">
+      {% if filtre_actif %}
+        <a class="clear-search" href="{% url 'presidents:liste' %}" title="Réinitialiser la recherche">{% icon "x" %}</a>
+      {% endif %}
+    </div>
+    <noscript><button class="btn btn-primary" type="submit">Rechercher</button></noscript>
+  </form>
+</section>
+
+{# =================== GRILLE DES PRÉSIDENTS =================== #}
+<section class="cards-view" id="presidents-resultats" aria-live="polite">
+  {% include "presidentApp/_grille.html" %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/equipes.js' %}?v=2.0" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) gsap.from(".coach-card", { y: 24, opacity: 0, duration: 0.45, stagger: 0.05, ease: "power2.out" });
+  });
+</script>
+{% endblock %}

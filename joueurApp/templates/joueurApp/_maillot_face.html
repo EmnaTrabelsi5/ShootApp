@@ -1,0 +1,18 @@
+{% load static %}{# Modèle du maillot vu de face (fiche du joueur) : le numéro est rempli en JS #}
+<template id="kit-face-tpl">
+  <svg class="kit kit-front" viewBox="0 0 220 300" aria-hidden="true">
+    <path class="kit-hook" d="M110 2 q0 -3 5 -2 q7 2 2 9 q-4 5 -7 8 v14"/>
+    <path class="kit-body" d="M80 34 Q110 44 140 34 L182 50 L214 116 L188 128 L168 92 L170 288 Q110 298 50 288 L52 92 L32 128 L6 116 L38 50 Z"/>
+    <path class="kit-fold" d="M84 110 Q78 200 86 290 M136 110 Q142 200 134 290"/>
+    <path class="kit-trim kit-side" d="M56 140 L54 276 M164 140 L166 276"/>
+    <path class="kit-trim kit-cuff" d="M11 105 L37 117 M209 105 L183 117"/>
+    <path class="kit-trim kit-hem" d="M50 272 Q110 282 170 272"/>
+    <path class="kit-collar" d="M80 34 L110 70 L140 34 L132 34 L110 60 L88 34 Z"/>
+    <path class="kit-hanger" d="M110 30 L44 50 q-6 2 -3 6 l3 2 L176 58 l3 -2 q3 -4 -3 -6 Z"/>
+    <circle class="kit-crest-bg" cx="146" cy="104" r="15"/>
+    <image href="{% static 'img/yalla-logo.svg' %}" x="133" y="91" width="26" height="26"/>
+    <text class="kit-num-small" x="74" y="114" text-anchor="middle"></text>
+    <text class="kit-sponsor" x="110" y="168" text-anchor="middle">YALLA</text>
+    <path class="kit-shade" d="M80 34 Q110 44 140 34 L182 50 L214 116 L188 128 L168 92 L170 288 Q110 298 50 288 L52 92 L32 128 L6 116 L38 50 Z"/>
+  </svg>
+</template>

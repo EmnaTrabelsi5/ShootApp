@@ -1,0 +1,49 @@
+{% extends "competitionApp/base_matchs.html" %}
+{% load static footlab %}
+
+{% block titre %}{% if object %}Modifier l'événement{% else %}Ajouter un événement{% endif %}{% endblock %}
+
+{% block contenu %}
+<div style="max-width: 860px; margin: 0 auto 20px;">
+  <a href="{% url 'competitionApp:match_detail' match.pk %}" class="btn btn-ghost" style="font-size: 13.5px;">
+    {% icon "arrow-left" %}
+    <span>Retour au match</span>
+  </a>
+</div>
+
+<div class="form-card">
+  <header style="margin-bottom: 26px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap;">
+      <div>
+        <p class="eyebrow" style="margin-bottom: 6px;">Événements de match</p>
+        <h1 style="font-family: var(--display); font-weight: 800; font-size: 38px; text-transform: uppercase; line-height: 1;">
+          {% if object %}Modifier l'événement{% else %}Ajouter un événement{% endif %}
+        </h1>
+        <p style="color: var(--muted); font-size: 15px; margin-top: 6px;">
+          {{ match.equipe_domicile.nom }} vs {{ match.equipe_exterieur.nom }} · {{ match.date_heure|date:"d/m/Y · H:i" }}
+        </p>
+      </div>
+
+      <span class="status-badge status-{{ match.statut|lower }}" style="padding: 6px 14px;">
+        {% if match.statut == "EN_COURS" %}<span class="live-dot"></span>{% endif %}
+        {{ match.get_statut_display }}
+      </span>
+    </div>
+  </header>
+
+  <form method="post" novalidate id="event-form">
+    {% csrf_token %}
+    {% include "competitionApp/_champs_formulaire.html" %}
+
+    <div class="form-actions">
+      <a class="btn btn-ghost" href="{% url 'competitionApp:match_detail' match.pk %}">
+        Annuler
+      </a>
+      <button type="submit" class="btn btn-primary">
+        <span class="btn-ic">{% icon "check" %}</span>
+        <span>Enregistrer l'événement</span>
+      </button>
+    </div>
+  </form>
+</div>
+{% endblock %}

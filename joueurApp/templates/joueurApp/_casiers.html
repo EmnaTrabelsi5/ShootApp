@@ -1,0 +1,72 @@
+{% load static footlab %}
+{# =================== LES CASIERS (page Joueurs : sur place, sinon page /joueurs/casiers/) =================== #}
+{# Variables : joueurs, groupes (code, titre, css, joueurs), saison, sur_place #}
+<section class="vr-scene lk-scene" id="casiers-scene" aria-labelledby="lk-title"{% if sur_place %} hidden{% endif %}>
+  <div class="vr-room" aria-hidden="true"><span class="vr-led lk-led"></span><span class="vr-bench"></span></div>
+
+  <header class="vr-top">
+    {% if not sur_place %}<a class="lk-back" href="{% url 'joueurs:liste' %}"><span aria-hidden="true">←</span> La tringle</a>{% endif %}
+    <div class="vr-heading">
+      <p class="vr-kicker">YALLA · Saison {{ saison }}</p>
+      {% if sur_place %}<h2 class="vr-title" id="lk-title">Les casiers</h2>{% else %}<h1 class="vr-title" id="lk-title">Les casiers</h1>{% endif %}
+      <p class="lk-sub">{{ joueurs|length }} casier{{ joueurs|length|pluralize }} à ouvrir</p>
+    </div>
+    <div class="vr-filter" role="group" aria-label="Filtrer les casiers par poste">
+      <button type="button" class="active" data-rail-poste="" aria-pressed="true">Tous<sup>{{ joueurs|length }}</sup></button>
+      {% for code, titre, css, js in groupes %}
+      <button type="button" data-rail-poste="{{ code }}" aria-pressed="false"{% if not js %} disabled{% endif %}>{{ code }}<sup>{{ js|length }}</sup></button>
+      {% endfor %}
+    </div>
+  </header>
+
+  {% if joueurs %}
+  <div class="lk-row" id="lk-row">
+    {% for code, titre, css, js in groupes %}{% if js %}
+    <div class="lk-group pos-{{ css }}" data-poste="{{ code }}">
+      <span class="vr-label">{{ titre }} <b>{{ js|length }}</b></span>
+      <div class="lk-lockers">
+        {% for j in js %}
+        <button type="button" class="lk st-{{ j.statut_css }}" data-open-locker="{{ j.pk }}" aria-label="Ouvrir le casier de {{ j.prenom }} {{ j.nom }}">
+          <span class="lk-plate"><b>{{ j.numero_maillot|default:"–" }}</b>{{ j.nom }}</span>
+          <span class="lk-box">
+            <span class="lk-inside">
+              <span class="lk-poster"{% if j.photo %} style="background-image:url('{{ j.photo.url }}')"{% endif %}>
+                {% if not j.photo %}<span class="lk-poster-ini">{{ j.initiales }}</span>{% endif %}
+                <span class="lk-poster-tag">{{ j.get_poste_display }}</span>
+              </span>
+              <span class="lk-shirt">{% include "joueurApp/_maillot.html" %}</span>
+              <span class="lk-shelf"></span>
+            </span>
+            <span class="lk-door" aria-hidden="true">
+              <span class="lk-vents"></span>
+              <span class="lk-led-dot"></span>
+              <span class="lk-door-num">{{ j.numero_maillot|default:"–" }}</span>
+              <span class="lk-door-name">{{ j.prenom }}<b>{{ j.nom }}</b></span>
+              <span class="lk-handle"></span>
+            </span>
+          </span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}{% endfor %}
+  </div>
+  <p class="vr-hint">Survole une porte · clique pour ouvrir le casier</p>
+  {% else %}
+  <p class="vr-empty">Aucun casier pour l'instant.</p>
+  {% endif %}
+
+  {% if sur_place %}<a class="vr-next vr-prev" href="#penderie" data-vue-tringle>
+      <span class="vr-next-k">Porte précédente<small>{{ joueurs|length }} maillot{{ joueurs|length|pluralize }} sur la tringle</small></span>
+      <span class="vr-next-card">
+        <span class="mini-rail" aria-hidden="true"><i></i><i></i><i></i></span>
+        <b><span aria-hidden="true">←</span> La tringle</b><em aria-hidden="true">↖</em>
+      </span>
+    </a>{% endif %}
+
+  <div class="vr-ticker" aria-hidden="true">
+    <div class="vr-ticker-in">
+      {% for _ in "12" %}<span>YALLA FootLab</span><span>Saison {{ saison }}</span><span>{{ joueurs|length }} casier{{ joueurs|length|pluralize }}</span><span>Radès</span>{% endfor %}
+    </div>
+  </div>
+</section>

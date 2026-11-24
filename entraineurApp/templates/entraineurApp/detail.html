@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}{{ entraineur.prenom }} {{ entraineur.nom }} • Fiche Entraîneur • YALLA{% endblock %}
+{% block nav_entraineur %}active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=1.1">
+{% endblock %}
+
+{% block content %}
+<div style="margin-bottom: 20px;">
+  <a href="{% url 'entraineur:liste' %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+    {% icon "arrow-left" %} <span>Retour à l'effectif staff</span>
+  </a>
+</div>
+
+<div class="coach-profile-wrap">
+  {# ---------- COLONNE GAUCHE : IDENTITÉ & COORDONNÉES ---------- #}
+  <aside class="coach-profile-aside">
+    <div class="coach-profile-photo" {% if entraineur.photo %}style="background-image: url('{{ entraineur.photo.url }}');"{% endif %}>
+      {% if not entraineur.photo %}<span>{{ entraineur.initiales }}</span>{% endif %}
+    </div>
+
+    <h1 class="coach-profile-name">{{ entraineur.prenom }}<br>{{ entraineur.nom }}</h1>
+    <p class="coach-profile-role">{{ entraineur.get_type_display|default:"Entraîneur" }}</p>
+
+    {% if entraineur.equipe %}
+      <span class="coach-badge-status has-team" style="font-size: 13px; padding: 6px 14px; margin-bottom: 18px;">
+        {% icon "flag" %} {{ entraineur.equipe.nom }}
+      </span>
+    {% else %}
+      <span class="coach-badge-status free" style="font-size: 13px; padding: 6px 14px; margin-bottom: 18px;">
+        Entraîneur sans équipe
+      </span>
+    {% endif %}
+
+    <dl class="coach-profile-meta-list">
+      <div class="coach-meta-row">
+        <dt>E-mail</dt>
+        <dd>{{ entraineur.email }}</dd>
+      </div>
+      <div class="coach-meta-row">
+        <dt>Téléphone</dt>
+        <dd>{{ entraineur.telephone|default:"Non renseigné" }}</dd>
+      </div>
+      <div class="coach-meta-row">
+        <dt>Date de naissance</dt>
+        <dd>{{ entraineur.date_naissance|date:"d/m/Y"|default:"Non renseignée" }}</dd>
+      </div>
+      {% if entraineur.age %}
+      <div class="coach-meta-row">
+        <dt>Âge</dt>
+        <dd>{{ entraineur.age }} ans</dd>
+      </div>
+      {% endif %}
+      <div class="coach-meta-row">
+        <dt>Statut du compte</dt>
+        <dd>
+          {% if entraineur.is_active %}
+            <span style="color: var(--coach-green); display: inline-flex; align-items: center; gap: 4px;">
+              <i style="width: 7px; height: 7px; border-radius: 50%; background: var(--coach-green); display: inline-block;"></i> Actif
+            </span>
+          {% else %}
+            <span style="color: var(--red); display: inline-flex; align-items: center; gap: 4px;">
+              <i style="width: 7px; height: 7px; border-radius: 50%; background: var(--red); display: inline-block;"></i> Suspendu
+            </span>
+          {% endif %}
+        </dd>
+      </div>
+      <div class="coach-meta-row">
+        <dt>Inscrit le</dt>
+        <dd>{{ entraineur.date_inscription|date:"d/m/Y" }}</dd>
+      </div>
+    </dl>
+
+    {% if peut_modifier or peut_supprimer %}
+    <div style="display: flex; gap: 10px; width: 100%; margin-top: 24px;">
+      {% if peut_modifier %}
+      <a href="{% url 'entraineur:editer' entraineur.pk %}" class="btn btn-primary magnetic" style="flex: 1; justify-content: center;">
+        {% icon "pencil" %} <span>Modifier</span>
+      </a>
+      {% endif %}
+      {% if peut_supprimer %}
+        <a href="{% url 'entraineur:supprimer' entraineur.pk %}" class="btn btn-ghost" style="color: var(--red); border-color: rgba(244,63,94,.3);" title="Supprimer">
+          {% icon "trash" %}
+        </a>
+      {% endif %}
+    </div>
+    {% endif %}
+  </aside>
+
+  {# ---------- COLONNE DROITE : DÉTAILS MÉTIER & SÉANCES ---------- #}
+  <main class="coach-profile-main">
+    <section class="coach-box">
+      <h2 class="coach-box-title">
+        {% icon "clipboard" %} <span>Affectation &amp; Compétences</span>
+      </h2>
+      <div class="coach-info-grid">
+        <div class="coach-info-card">
+          <small>Type d'entraîneur</small>
+          <strong>{{ entraineur.get_type_display|default:"Non spécifié" }}</strong>
+        </div>
+        <div class="coach-info-card">
+          <small>Fonction officielle</small>
+          <strong>{{ entraineur.get_fonction_display|default:"Non spécifiée" }}</strong>
+        </div>
+        <div class="coach-info-card">
+          <small>Spécialité dominante</small>
+          <strong style="color: var(--coach-green);">{{ entraineur.get_specialite_display|default:"Polyvalent" }}</strong>
+        </div>
+        <div class="coach-info-card">
+          <small>Équipe sous sa responsabilité</small>
+          <strong>
+            {% if entraineur.equipe %}
+              {{ entraineur.equipe.nom }} ({{ entraineur.equipe.ville }})
+            {% else %}
+              Aucune équipe actuellement
+            {% endif %}
+          </strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="coach-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 class="coach-box-title" style="margin-bottom: 0;">
+          {% icon "calendar" %} <span>Séances d'entraînement</span>
+        </h2>
+        <span style="font-size: 13px; font-weight: 700; color: var(--muted);">{{ seances|length }} séance(s)</span>
+      </div>
+
+      {% if seances %}
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for seance in seances %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 12px;">
+              <div>
+                <strong style="display: block; font-size: 14.5px; color: var(--text);">{{ seance.titre }}</strong>
+                <small style="color: var(--muted); font-size: 12.5px;">{{ seance.date|date:"l j F Y" }} · {{ seance.heure_debut|time:"H:i" }} à {{ seance.heure_fin|time:"H:i" }} {% if seance.lieu %}· {{ seance.lieu }}{% endif %}</small>
+              </div>
+              <span class="coach-badge-type" style="font-size: 11px;">
+                {{ seance.get_statut_display }}
+              </span>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="text-align: center; padding: 34px 20px; background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 14px;">
+          <p style="color: var(--muted); font-size: 14px; margin: 0;">Aucune séance d'entraînement enregistrée pour cet entraîneur.</p>
+        </div>
+      {% endif %}
+    </section>
+  </main>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) {
+      gsap.from(".coach-profile-aside", { x: -30, opacity: 0, duration: 0.5, ease: "power2.out" });
+      gsap.from(".coach-box", { y: 25, opacity: 0, duration: 0.5, stagger: 0.12, ease: "power2.out" });
+    }
+  });
+</script>
+{% endblock %}

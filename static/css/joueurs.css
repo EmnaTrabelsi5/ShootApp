@@ -1,0 +1,137 @@
+/* =========================================================
+   YALLA • Vestiaire & Effectif (liste + fiches joueurs)
+   S'appuie sur footlab.css + street.css
+   ========================================================= */
+
+/* ---------- En-tête ---------- */
+.vs-graff { left: 520px; top: 46px; }
+.head-card .st-ballon { right: 22px; }
+.head-card .head-right { margin-right: 0; }
+.vs-tools { gap: 22px; align-items: center; flex-wrap: wrap; }
+.vs-search-form { display: flex; align-items: center; gap: 10px; }
+.vs-search-form .pk-search { width: 300px; flex: none; }
+.vs-search-form .pk-search svg { width: 15px; height: 15px; }
+.vs-filters { max-width: none; }
+.vs-chip-n { font-weight: 800; font-size: 10.5px; opacity: .7; }
+a.chip-groupe.active .vs-chip-n { opacity: 1; }
+
+/* Filtre statut (mêmes pastilles que le sélecteur de joueurs) */
+.vs-statuts { margin-left: auto; }
+.vs-statuts a { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border-radius: 8px; font-weight: 700; font-size: 12px; color: var(--ink-2); }
+.vs-statuts a i { width: 8px; height: 8px; border-radius: 50%; background: var(--s); }
+.vs-statuts a b { font-weight: 800; color: var(--muted); font-size: 11px; }
+.vs-statuts a:hover { background: #fff; }
+.vs-statuts a.active { background: var(--navy); color: #fff; }
+.vs-statuts a.active b { color: var(--yellow); }
+
+/* ---------- KPI âge / répartition ---------- */
+.kpis .kpi-val small { margin-left: 5px; }
+.vs-kpi-age .kpi-val { font-size: 24px !important; }
+.vs-rep { display: flex; gap: 6px; margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(255,255,255,.2); }
+.vs-rep span {
+  flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  background: rgba(255,255,255,.08); border-radius: 6px; padding: 4px 0;
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 700; font-size: 12.5px; letter-spacing: .5px; color: #d1fae5;
+}
+.vs-rep b { color: var(--yellow); font-weight: 800; }
+.vs-rep .g-dot { box-shadow: 0 0 0 2px rgba(255,255,255,.5); }
+
+.vs-result { font-weight: 700; color: var(--muted); font-size: 12.5px; padding-left: 4px; }
+
+/* ---------- Une ligne (gardiens, défenseurs...) ---------- */
+.roster { padding: 14px 16px 16px; border-top: 4px solid var(--g); }
+.roster-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.roster-head h2 { font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 19px; letter-spacing: 1px; }
+.roster-head .g-dot { width: 10px; height: 10px; box-shadow: 0 0 0 3px var(--gs); }
+.roster-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+
+/* ---------- Carte joueur ---------- */
+.pl-card {
+  position: relative; display: flex; flex-direction: column;
+  background: #fff; border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 20px -14px rgba(15,23,42,.25);
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease;
+  scroll-margin-top: 110px;
+}
+.pl-card:hover { transform: translateY(-3px); border-color: color-mix(in srgb, var(--g) 45%, var(--line)); box-shadow: 0 14px 28px -14px rgba(15,23,42,.35); }
+.pl-card:target { outline: 3px solid var(--yellow); outline-offset: 2px; }
+
+.pl-top {
+  position: relative; height: 74px;
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.10) 0 8px, transparent 8px 16px),
+    linear-gradient(135deg, var(--g), color-mix(in srgb, var(--g) 60%, #000));
+}
+.pl-num {
+  position: absolute; left: 12px; top: 4px;
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 46px; line-height: 1;
+  color: rgba(255,255,255,.95); text-shadow: 2px 2px 0 rgba(0,0,0,.25);
+}
+.pl-statut {
+  position: absolute; right: 10px; top: 10px;
+  display: inline-flex; align-items: center; gap: 5px;
+  background: rgba(15,23,42,.55); color: #fff; backdrop-filter: blur(2px);
+  font-size: 10px; font-weight: 800; letter-spacing: .4px; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 999px;
+}
+.pl-statut i { width: 7px; height: 7px; border-radius: 50%; background: var(--s); box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
+.pl-photo { --s: 66px; position: absolute; right: 14px; bottom: -30px; font-size: 20px; border-width: 3px; }
+
+.pl-body { padding: 10px 12px 10px; display: flex; flex-direction: column; gap: 7px; }
+.pl-name { font-size: 14px; font-weight: 700; line-height: 1.15; max-width: calc(100% - 78px); min-height: 32px; }
+.pl-name span { display: block; font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 19px; letter-spacing: .4px; }
+.pl-infos { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 2px; }
+.pl-infos div { background: #f8faf9; border: 1px solid var(--line); border-radius: 7px; padding: 5px 7px; min-width: 0; }
+.pl-infos dt { font-size: 9px; font-weight: 800; letter-spacing: .6px; text-transform: uppercase; color: var(--muted); }
+.pl-infos dd { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-equipe { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--muted); }
+.pl-equipe svg { width: 12px; height: 12px; color: var(--g); }
+.pl-foot { margin-top: auto; padding: 8px 10px 10px; border-top: 1px solid var(--line); justify-content: stretch; }
+
+/* Statuts : même langage visuel que le sélecteur de joueurs */
+.pl-card.st-blesse .pl-photo { filter: grayscale(1) brightness(.8); }
+.pl-card.st-blesse .pl-top { filter: saturate(.35); }
+.pl-card.st-blesse .pl-statut { background: var(--red); }
+.pl-card.st-blesse .pl-statut i { background: #fff; }
+.pl-card.st-dispense .pl-photo { box-shadow: 0 0 0 3px #f59e0b, 0 3px 8px rgba(0,0,0,.25); }
+.pl-card.st-dispense .pl-statut { background: #f59e0b; color: #1f1300; }
+.pl-card.st-dispense .pl-statut i { background: #1f1300; }
+
+/* Tuile « Ajouter » (reprend .slot-libre du calendrier) */
+.pl-add { min-height: 248px; border-radius: 12px; display: flex; flex-direction: column; }
+.pl-add:hover svg { color: var(--g); }
+.pl-vide { grid-column: 1 / -1; color: var(--muted); font-size: 12.5px; padding: 8px 2px; }
+
+/* ---------- Popup joueur ---------- */
+.vs-modal { width: 720px; }
+.vs-modal #form-joueur { padding: 12px 24px 22px; }
+.vs-ident { display: flex; gap: 18px; align-items: flex-end; margin-bottom: 4px; }
+.vs-ident .vs-postes { flex: 1; }
+.vs-photo-pick { position: relative; cursor: pointer; margin-bottom: 16px; flex-shrink: 0; }
+.vs-photo-pick .pk-photo { --s: 74px; font-size: 22px; border-color: #fff; box-shadow: 0 0 0 2px var(--line), 0 6px 14px rgba(0,0,0,.2); }
+.vs-photo-pick:hover .pk-photo { box-shadow: 0 0 0 2px var(--green), 0 6px 14px rgba(0,0,0,.2); }
+.vs-photo-ic {
+  position: absolute; right: -4px; bottom: -2px; width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center; background: var(--navy); color: var(--yellow); border: 2px solid #fff;
+}
+.vs-photo-ic svg { width: 13px; height: 13px; }
+.vs-photo-pick input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+.vs-photo-pick:focus-within .pk-photo { outline: 2px solid var(--blue); outline-offset: 3px; }
+
+/* Pastilles de statut dans la popup */
+.st-pill.st-disponible { --g: #16a34a; --gs: #e8f9ee; }
+.st-pill.st-dispense   { --g: #d97706; --gs: #fff4e0; }
+.st-pill.st-blesse     { --g: var(--red); --gs: #fdecec; }
+.vs-statut-pills { grid-template-columns: repeat(3, 1fr); }
+
+.field select { appearance: auto; }
+.field select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(11,107,58,.15); background: #fff; }
+.field.has-error select { border-color: var(--red); background: #fff7f7; }
+.field.has-error .groupe-pill span { border-color: #fecaca; }
+.field label .err { text-transform: none; letter-spacing: 0; }
+
+/* Les boutons radio restent cachés derrière les pastilles */
+.field .groupe-pill input[type] {
+  position: absolute; width: 1px; height: 1px; padding: 0; border: 0;
+  opacity: 0; pointer-events: none;
+}

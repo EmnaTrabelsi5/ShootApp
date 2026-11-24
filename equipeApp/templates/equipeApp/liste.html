@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Équipes • YALLA{% endblock %}
+{% block nav_equipes %}active{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+{% endblock %}
+
+{% block content %}
+{# =================== HERO & STATISTIQUES (STYLE MATCHS) =================== #}
+<section class="hero" id="hero-equipes">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>Administration · Saison {{ saison }}</p>
+    <h1 class="hero-title" data-split>Les équipes<br><span class="hero-title-2">du club</span></h1>
+    <p class="hero-sub">Gestion complète des équipes, de leur encadrement technique et de leur effectif de joueurs.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary magnetic" href="{% url 'equipes:creer' %}">
+        <span class="btn-ic">{% icon "plus" %}</span><span>Créer une équipe</span>
+      </a>
+    </div>
+  </div>
+
+  <aside class="hero-kpis" aria-label="Statistiques des équipes">
+    <div class="kpi-card">
+      <span class="kpi-label">Équipes</span>
+      <b class="kpi-num">{{ stats.total }}</b>
+      <small class="kpi-sub">enregistrées</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Pays</span>
+      <b class="kpi-num">{{ stats.pays }}</b>
+      <small class="kpi-sub">représentés</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Joueurs</span>
+      <b class="kpi-num">{{ stats.joueurs }}</b>
+      <small class="kpi-sub">affectés à une équipe</small>
+    </div>
+  </aside>
+</section>
+
+{# =================== BARRE DE RECHERCHE PAR NOM UNIQUEMENT =================== #}
+<section class="coach-toolbar" aria-label="Recherche par nom">
+  <form class="eq-filters-simple" method="get" action="{% url 'equipes:liste' %}" data-live-search data-target="#equipes-resultats">
+    <div class="coach-search-box">
+      {% icon "search" %}
+      <input type="text" name="q" value="{{ q }}" placeholder="Rechercher une équipe par son nom…" autocomplete="off" aria-label="Rechercher par nom d'équipe">
+      {% if filtre_actif %}
+        <a class="clear-search" href="{% url 'equipes:liste' %}" title="Réinitialiser la recherche">{% icon "x" %}</a>
+      {% endif %}
+    </div>
+    <noscript><button class="btn btn-primary" type="submit">Rechercher</button></noscript>
+  </form>
+</section>
+
+{# =================== GRILLE DES ÉQUIPES =================== #}
+<section class="cards-view" id="equipes-resultats" aria-live="polite">
+  {% include "equipeApp/_grille.html" %}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/equipes.js' %}?v=2.0" defer></script>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.gsap) gsap.from(".coach-card", { y: 24, opacity: 0, duration: 0.45, stagger: 0.05, ease: "power2.out" });
+  });
+</script>
+{% endblock %}

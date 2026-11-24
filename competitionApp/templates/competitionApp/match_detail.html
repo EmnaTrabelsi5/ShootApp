@@ -1,0 +1,153 @@
+{% extends "competitionApp/base_matchs.html" %}
+{% load static footlab %}
+
+{% block titre %}{{ match.equipe_domicile.nom }} vs {{ match.equipe_exterieur.nom }}{% endblock %}
+
+{% block contenu %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+  <a href="{% url 'competitionApp:match_list' %}" class="btn btn-ghost" style="font-size: 13.5px;">
+    {% icon "arrow-left" %}
+    <span>Retour au calendrier</span>
+  </a>
+
+  {% if peut_gerer and not match.est_valide %}
+  <div style="display: flex; gap: 8px;">
+    <a class="btn btn-ghost" href="{% url 'competitionApp:match_update' match.pk %}">
+      {% icon "pencil" %}
+      <span>Modifier le match</span>
+    </a>
+    <a class="btn btn-danger" href="{% url 'competitionApp:match_delete' match.pk %}">
+      {% icon "trash" %}
+      <span>Supprimer</span>
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+{# =================== SCOREBOARD HERO =================== #}
+<section class="match-hero-scoreboard" aria-label="Tableau d'affichage du match">
+  <div class="scoreboard-top">
+    <a href="{% url 'competitionApp:competition_detail' match.competition.pk %}" class="comp-chip" style="font-size: 13px;">
+      {% icon "trophy" %}
+      <span>{{ match.competition.nom }} ({{ match.competition.type }})</span>
+    </a>
+
+    <span class="status-badge status-{{ match.statut|lower }}" style="font-size: 12px; padding: 6px 14px;">
+      {% if match.statut == "EN_COURS" %}<span class="live-dot"></span>{% endif %}
+      {{ match.get_statut_display }}
+    </span>
+  </div>
+
+  <div class="scoreboard-clash">
+    <div class="sb-team home">
+      <div>
+        <h2 class="sb-team-name">{{ match.equipe_domicile.nom }}</h2>
+        <p class="sb-team-city">{{ match.equipe_domicile.ville }} · Domicile</p>
+      </div>
+      {% include "competitionApp/_ecusson.html" with equipe=match.equipe_domicile size="lg" %}
+    </div>
+
+    <div class="scoreboard-center">
+      {% if match.score_domicile is not None and match.score_exterieur is not None %}
+        <div class="scoreboard-display">{{ match.score_domicile }} - {{ match.score_exterieur }}</div>
+      {% else %}
+        <div class="scoreboard-display" style="font-size: 32px; color: var(--muted); padding: 14px 28px;">VS</div>
+      {% endif %}
+      <span style="font-weight: 700; color: var(--muted); font-size: 13px;">{{ match.date_heure|date:"H:i" }} (Tunis)</span>
+    </div>
+
+    <div class="sb-team away">
+      {% include "competitionApp/_ecusson.html" with equipe=match.equipe_exterieur size="lg" %}
+      <div>
+        <h2 class="sb-team-name">{{ match.equipe_exterieur.nom }}</h2>
+        <p class="sb-team-city">{{ match.equipe_exterieur.ville }} · Extérieur</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="scoreboard-bottom">
+    <span>{% icon "calendar" %} {{ match.date_heure|date:"l d F Y" }}</span>
+    <span>{% icon "map-pin" %} {{ match.lieu|default:"Lieu à définir" }}</span>
+    {% if match.est_valide %}
+      <span class="badge-valide">{% icon "check" %} Résultat validé par {{ match.valide_par }}</span>
+    {% else %}
+      <span style="color: var(--muted);">{% icon "activity" %} Résultat non encore validé</span>
+    {% endif %}
+  </div>
+</section>
+
+{# =================== TIMELINE DES ÉVÉNEMENTS =================== #}
+<section class="timeline-card" aria-label="Événements de la rencontre">
+  <div class="timeline-head">
+    <h3 class="timeline-title">
+      {% icon "activity" %}
+      <span>Événements du match</span>
+      <span style="font-size: 14px; font-weight: 700; color: var(--muted); background: var(--surface-2); padding: 3px 10px; border-radius: 999px;">
+        {{ evenements|length }}
+      </span>
+    </h3>
+
+    {% if peut_gerer %}
+      {% if match.accepte_evenements %}
+        <a class="btn btn-primary" href="{% url 'competitionApp:evenement_create' match.pk %}">
+          <span class="btn-ic">{% icon "plus" %}</span>
+          <span>Ajouter un événement</span>
+        </a>
+      {% else %}
+        <span class="form-help" style="font-style: italic;">
+          {% if match.est_valide %}
+            Match validé (événements verrouillés)
+          {% else %}
+            Événements autorisés uniquement si le match est « En cours » ou « Terminé ».
+          {% endif %}
+        </span>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <ol class="events-list">
+    {% for evenement in evenements %}
+      <li class="event-row">
+        <span class="event-minute-badge ev-{{ evenement.type_evenement|lower }}">
+          {{ evenement.minute }}'{% if evenement.minute_additionnelle %}+{{ evenement.minute_additionnelle }}{% endif %}
+        </span>
+
+        <div class="event-content">
+          <div class="event-title">
+            <span>{{ evenement.get_type_evenement_display }}</span>
+            {% if evenement.joueur %}
+              <span style="color: var(--lime);">· {{ evenement.joueur }}</span>
+            {% endif %}
+            <span style="font-size: 12px; font-weight: 600; color: var(--muted);">({{ evenement.equipe.nom }})</span>
+          </div>
+
+          <div class="event-desc">
+            {% if evenement.joueur_entrant %}
+              <span style="color: #60a5fa; font-weight: 600;">Entrée en jeu : {{ evenement.joueur_entrant }}</span>
+            {% endif %}
+            {% if evenement.description %}
+              <span>{{ evenement.description }}</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if peut_gerer and not match.est_valide %}
+        <div class="event-actions">
+          <a href="{% url 'competitionApp:evenement_update' evenement.pk %}" class="act-btn" title="Modifier cet événement">
+            {% icon "pencil" %}
+            <span>Modifier</span>
+          </a>
+          <a href="{% url 'competitionApp:evenement_delete' evenement.pk %}" class="act-btn danger" title="Supprimer cet événement">
+            {% icon "trash" %}
+          </a>
+        </div>
+        {% endif %}
+      </li>
+    {% empty %}
+      <li style="padding: 32px 16px; text-align: center; color: var(--muted); font-size: 14.5px;">
+        Aucun événement enregistré pour ce match pour le moment.
+      </li>
+    {% endfor %}
+  </ol>
+</section>
+{% endblock %}
