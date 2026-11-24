@@ -7,9 +7,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('competitionApp', '0004_competition_photo'),
+        ('competitionApp', '0003_initial'),
         ('entraineurApp', '0003_alter_entraineur_fonction_and_more'),
-        ('equipeApp', '0003_equipe_pays_description_staff_scouts'),
+        ('equipeApp', '0002_initial'),
         ('joueurApp', '0002_joueur_statut'),
     ]
 

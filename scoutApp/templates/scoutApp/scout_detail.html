@@ -1,0 +1,56 @@
+{% extends "scoutApp/base.html" %}
+{% load footlab %}
+{% block title %}{{ object.prenom }} {{ object.nom }} • YALLA{% endblock %}
+{% block content %}
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Profil scouting</p>
+    <h1>Fiche du scout</h1>
+    <p>Consultez les informations du membre et son activité récente.</p>
+  </div>
+  <a class="btn btn-ghost" href="{% url 'scoutApp:scout-list' %}">{% icon "arrow-left" %}<span>Retour au scouting</span></a>
+</header>
+
+<div class="scout-detail-grid">
+  <section class="fiche-box">
+    <h2 class="fiche-box-title">{% icon "binoculars" %}<span>Profil du scout</span></h2>
+    <div class="scout-detail-heading">
+      <div class="scout-detail-avatar">
+        {% if object.photo %}<img src="{{ object.photo.url }}" alt="Photo de {{ object }}">{% else %}{{ object.prenom|first|upper }}{{ object.nom|first|upper }}{% endif %}
+      </div>
+      <div>
+        <h1>{{ object.prenom }} {{ object.nom }}</h1>
+        <p>{{ object.specialite_scout|default:"Spécialité non définie" }}</p>
+      </div>
+    </div>
+    <dl class="fiche-meta-list">
+      <div class="fiche-meta-row"><dt>Email</dt><dd>{{ object.email }}</dd></div>
+      <div class="fiche-meta-row"><dt>Téléphone</dt><dd>{{ object.telephone|default:"Non renseigné" }}</dd></div>
+      <div class="fiche-meta-row"><dt>Type de scout</dt><dd>{{ object.type|default:"Non renseigné" }}</dd></div>
+      <div class="fiche-meta-row"><dt>Statut</dt><dd>{% if object.is_active %}Actif{% else %}Inactif{% endif %}</dd></div>
+    </dl>
+    <div class="scout-actions">
+      <a class="btn btn-ghost" href="{% url 'scoutApp:scout-update' object.pk %}">{% icon "pencil" %}<span>Modifier</span></a>
+      <a class="btn btn-danger" href="{% url 'scoutApp:scout-delete' object.pk %}">{% icon "trash" %}<span>Supprimer</span></a>
+    </div>
+  </section>
+
+  <section class="fiche-box">
+    <h2 class="fiche-box-title">{% icon "clipboard" %}<span>Rapports récents</span></h2>
+    <ul class="scout-feed">
+      {% for rapport in object.rapports.all|slice:":5" %}
+      <li class="scout-feed-item">
+        <span class="scout-feed-icon">{% icon "user" %}</span>
+        <span class="scout-feed-copy">
+          <strong>{{ rapport.joueur.prenom }} {{ rapport.joueur.nom }}</strong>
+          <span>{{ rapport.observations|default:"Évaluation du joueur"|truncatechars:60 }}</span>
+        </span>
+        <a class="scout-panel-link" href="{% url 'scoutApp:rapport-detail' rapport.pk %}">{% icon "eye" %}Voir</a>
+      </li>
+      {% empty %}
+      <li class="scout-empty">Ce scout n'a pas encore rédigé de rapport.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

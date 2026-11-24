@@ -31,14 +31,9 @@ def ajouter_ock_et_effectif(apps, schema_editor):
         nom="Océano Club de Kerkennah",
         defaults={
             "ville": "Kerkennah",
-            "pays": "Tunisie",
             "niveau": "Senior",
-            "description": "OCK — club de Kerkennah. Effectif de démonstration.",
         },
     )
-    if not equipe.pays:
-        equipe.pays = "Tunisie"
-        equipe.save(using=db_alias, update_fields=["pays"])
 
     joueurs_existants = Joueur.objects.using(db_alias).filter(equipe_id=equipe.pk)
     if joueurs_existants.count() >= 11 and joueurs_existants.filter(poste="GB").exists():
@@ -75,7 +70,7 @@ def ajouter_ock_et_effectif(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("equipeApp", "0003_equipe_pays_description_staff_scouts"),
+        ("equipeApp", "0002_initial"),
         ("joueurApp", "0002_joueur_statut"),
     ]
 

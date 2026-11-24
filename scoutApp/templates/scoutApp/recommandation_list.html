@@ -1,0 +1,48 @@
+{% extends "scoutApp/base.html" %}
+{% load footlab %}
+{% block title %}Recommandations • YALLA{% endblock %}
+{% block content %}
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Décisions de recrutement</p>
+    <h1>Recommandations</h1>
+    <p>Suivez les profils proposés au club, leur compatibilité et l'état de leur évaluation.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'scoutApp:recommandation-create' %}">
+    <span class="btn-ic">{% icon "plus" %}</span><span>Nouvelle recommandation</span>
+  </a>
+</header>
+
+<section class="scout-panel">
+  <header class="scout-panel-head">
+    <h2>{% icon "flag" %}Profils recommandés</h2>
+    <span class="scout-status">{{ recommandations|length }} profil{{ recommandations|length|pluralize }}</span>
+  </header>
+  <div class="scout-table-wrap">
+    <table class="scout-table">
+      <thead><tr><th>Joueur</th><th>Compatibilité</th><th>Statut</th><th>Justification</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for recommandation in recommandations %}
+      <tr>
+        <td><strong>{{ recommandation.joueur.prenom }} {{ recommandation.joueur.nom }}</strong></td>
+        <td><span class="scout-score">{{ recommandation.score_compatibilite|floatformat:0 }}%</span></td>
+        <td>
+          <span class="scout-status {% if recommandation.statut == 'ACCEPTEE' %}is-accepted{% elif recommandation.statut == 'REJETEE' %}is-rejected{% else %}is-pending{% endif %}">
+            {{ recommandation.get_statut_display }}
+          </span>
+        </td>
+        <td>{{ recommandation.justification|default:"—"|truncatechars:70 }}</td>
+        <td class="scout-table-actions">
+          <a href="{% url 'scoutApp:recommandation-detail' recommandation.pk %}">Voir</a>
+          <a href="{% url 'scoutApp:recommandation-update' recommandation.pk %}">Modifier</a>
+          <a href="{% url 'scoutApp:recommandation-delete' recommandation.pk %}">Supprimer</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5"><div class="scout-empty">Aucune recommandation enregistrée.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

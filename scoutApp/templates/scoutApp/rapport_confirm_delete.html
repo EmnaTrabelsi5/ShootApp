@@ -1,0 +1,16 @@
+{% extends "scoutApp/base.html" %}
+{% load footlab %}
+{% block title %}Supprimer un rapport • YALLA{% endblock %}
+{% block content %}
+<section class="fiche-box scout-confirm">
+  <span class="confirm-icon">{% icon "trash" %}</span>
+  <p class="eyebrow">Confirmation</p>
+  <h1>Supprimer ce rapport&nbsp;?</h1>
+  <p>Le rapport concernant <strong>{{ object.joueur.prenom }} {{ object.joueur.nom }}</strong> sera définitivement supprimé.</p>
+  <form method="post" class="scout-actions">
+    {% csrf_token %}
+    <a class="btn btn-ghost" href="{% url 'scoutApp:rapport-detail' object.pk %}">Annuler</a>
+    <button class="btn btn-danger" type="submit">{% icon "trash" %}<span>Confirmer la suppression</span></button>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends "scoutApp/base.html" %}
+{% load footlab %}
+{% block title %}Scouting • YALLA{% endblock %}
+{% block content %}
+<section class="hero scout-hero">
+  <div class="hero-copy">
+    <p class="eyebrow"><span class="live-dot"></span>Recrutement · Saison {{ saison }}</p>
+    <h1 class="hero-title">Scouting<br><span class="hero-title-2">et talents</span></h1>
+    <p class="hero-sub">Repérez les profils prometteurs, centralisez les observations et suivez les recommandations du club.</p>
+    <div class="hero-actions">
+      <a class="btn btn-primary" href="{% url 'scoutApp:rapport-create' %}">
+        <span class="btn-ic">{% icon "plus" %}</span><span>Nouveau rapport</span>
+      </a>
+      <a class="btn btn-ghost" href="{% url 'scoutApp:scout-create' %}">{% icon "user-check" %}<span>Ajouter un scout</span></a>
+    </div>
+  </div>
+  <aside class="hero-kpis" aria-label="Statistiques scouting">
+    <div class="kpi-card">
+      <span class="kpi-label">Scouts</span>
+      <b class="kpi-num">{{ scouts|length }}</b>
+      <small class="kpi-sub">dans l'équipe</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Rapports</span>
+      <b class="kpi-num">{{ rapport_count }}</b>
+      <small class="kpi-sub">analyses joueurs</small>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">À examiner</span>
+      <b class="kpi-num">{{ pending_recommendation_count }}</b>
+      <small class="kpi-sub">recommandations</small>
+    </div>
+  </aside>
+</section>
+
+<section class="scout-dashboard-grid" aria-label="Activité scouting">
+  <article class="scout-panel">
+    <header class="scout-panel-head">
+      <h2>{% icon "clipboard" %}Derniers rapports</h2>
+      <a class="scout-panel-link" href="{% url 'scoutApp:rapport-list' %}">Tous les rapports</a>
+    </header>
+    <ul class="scout-feed">
+      {% for rapport in recent_reports %}
+      <li class="scout-feed-item">
+        <span class="scout-feed-icon">{% icon "user" %}</span>
+        <span class="scout-feed-copy">
+          <strong>{{ rapport.joueur.prenom }} {{ rapport.joueur.nom }}</strong>
+          <span>{{ rapport.scout }} · {{ rapport.observations|default:"Évaluation du joueur"|truncatechars:58 }}</span>
+        </span>
+        <span class="scout-feed-meta">{{ rapport.date_rapport|date:"d/m/Y" }}</span>
+      </li>
+      {% empty %}
+      <li class="scout-empty">Aucun rapport pour le moment.</li>
+      {% endfor %}
+    </ul>
+  </article>
+
+  <article class="scout-panel">
+    <header class="scout-panel-head">
+      <h2>{% icon "flag" %}Recommandations</h2>
+      <a class="scout-panel-link" href="{% url 'scoutApp:recommandation-list' %}">Tout consulter</a>
+    </header>
+    <ul class="scout-feed">
+      {% for recommandation in top_recommendations %}
+      <li class="scout-feed-item">
+        <span class="scout-feed-icon">{% icon "award" %}</span>
+        <span class="scout-feed-copy">
+          <strong>{{ recommandation.joueur.prenom }} {{ recommandation.joueur.nom }}</strong>
+          <span>{{ recommandation.get_statut_display }} · {{ recommandation.justification|default:"Profil recommandé"|truncatechars:50 }}</span>
+        </span>
+        <span class="scout-score">{{ recommandation.score_compatibilite|floatformat:0 }}%</span>
+      </li>
+      {% empty %}
+      <li class="scout-empty">Aucune recommandation enregistrée.</li>
+      {% endfor %}
+    </ul>
+  </article>
+</section>
+
+<section class="scout-panel">
+  <header class="scout-panel-head">
+    <h2>{% icon "binoculars" %}Équipe de scouting</h2>
+    <a class="scout-panel-link" href="{% url 'scoutApp:scout-create' %}">{% icon "plus" %}Ajouter un scout</a>
+  </header>
+  <div class="coach-grid scout-grid">
+    {% for scout in scouts %}
+    <article class="coach-card scout-card">
+      <div class="coach-card-banner">
+        <span class="coach-badge-type">{% icon "binoculars" %} Scout</span>
+        <span class="coach-badge-status {% if scout.is_active %}has-team{% else %}free{% endif %}">
+          {% if scout.is_active %}Actif{% else %}Inactif{% endif %}
+        </span>
+      </div>
+      <div class="coach-card-body">
+        <div class="coach-avatar-row">
+          <div class="coach-avatar">
+            {% if scout.photo %}<img src="{{ scout.photo.url }}" alt="Photo de {{ scout }}">{% else %}{{ scout.prenom|first|upper }}{{ scout.nom|first|upper }}{% endif %}
+          </div>
+        </div>
+        <h3 class="coach-name">{{ scout.prenom }} {{ scout.nom }}</h3>
+        <p class="coach-function">{{ scout.email }}</p>
+        <div class="coach-details">
+          {% if scout.telephone %}<span class="coach-detail-item">{% icon "phone" %}{{ scout.telephone }}</span>{% endif %}
+          <span class="scout-specialty">{% icon "flag" %}{{ scout.specialite_scout|default:"Spécialité non définie" }}</span>
+        </div>
+        <div class="coach-card-actions">
+          <a class="act act-view" href="{% url 'scoutApp:scout-detail' scout.pk %}">{% icon "eye" %}Voir le profil</a>
+          <a class="act act-view" href="{% url 'scoutApp:scout-update' scout.pk %}" aria-label="Modifier {{ scout }}">{% icon "pencil" %}</a>
+        </div>
+      </div>
+    </article>
+    {% empty %}
+    <p class="scout-empty">{% icon "users" %} Aucun scout enregistré. Ajoutez un membre à l'équipe de scouting.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,186 @@
+/* =========================================================
+   Module Séances • habillage ShootApp (YALLA FootLab Pro)
+   Chargé APRÈS seances.css : aligne le planning d'entraînement
+   sur les jetons de ShootApp (DESIGN.md + yalla.css).
+   Tout est limité à .seances : aucune autre page n'est touchée.
+   ========================================================= */
+.seances {
+  /* Jetons ShootApp */
+  --green: #1f7a3a;          /* vert ShootApp (boutons, sur-titres, actifs) */
+  --green-dark: #186330;
+  --green-deep: #0b6b3a;
+  --green-soft: rgba(31, 122, 58, .10);
+  --green-text: #1f7a3a;
+  --ink: #0f2118;
+  --ink-2: #3d5447;
+  --muted: #566b5f;
+  --line: rgba(16, 48, 30, .10);
+  --bg: transparent;
+  --radius: 16px;
+  --lime-sa: #d4ff3a;
+  --shadow-sa: 0 18px 40px -22px rgba(16, 48, 30, .35);
+  --shadow-sm-sa: 0 8px 24px -12px rgba(16, 48, 30, .25);
+
+  display: flex; flex-direction: column; gap: 16px;
+  min-width: 0; background: none;
+  font-size: 14px; color: var(--ink);
+}
+
+/* ---------- En-tête : même hero que les pages Joueurs / Entraîneurs ---------- */
+.seances .se-hero { margin-bottom: 8px; }
+.seances .se-hero .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 1.6px; color: var(--ink); }
+.seances .se-hero .hero-title {
+  display: block; margin-top: 12px;
+  font-family: var(--display, "Barlow Condensed", "Inter", sans-serif); font-weight: 800; text-transform: uppercase;
+  font-size: clamp(56px, 6.4vw, 104px); line-height: .88; letter-spacing: -1px; color: #0f2118;
+}
+.seances .se-hero .hero-sub { margin-top: 18px; max-width: 36rem; font-size: 16px; line-height: 1.6; color: var(--ink-2); }
+.seances .se-hero .hero-actions { margin-top: 24px; }
+.seances .se-hero .btn { padding: 0 20px; }
+.seances .se-hero .btn-ic { width: 26px; height: 26px; }
+
+/* ---------- Cartes : rayon 16px, ombre douce ShootApp ---------- */
+.seances .card, .seances .kpi:not(.kpi-dark), .seances .week {
+  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: var(--shadow-sa);
+}
+
+/* ---------- Barre d'outils (semaine + filtres) ---------- */
+.seances .se-toolbar { padding: 16px 20px; }
+.seances .se-toolbar .head-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; margin-top: 0; }
+.seances .week-nav-wrap { flex-direction: row; align-items: center; gap: 10px; }
+.seances .week-nav {
+  background: #f3f7f1; border: 1px solid var(--line); border-radius: 999px; padding: 4px 6px;
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 16px; letter-spacing: .4px; color: var(--ink);
+  white-space: nowrap;
+}
+.seances .week-nav span { padding: 0 10px; }
+.seances .wk-btn { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--ink-2); }
+.seances .wk-btn:hover { background: #fff; color: var(--green); }
+.seances .btn-today {
+  border: 1px solid rgba(16, 48, 30, .16); border-radius: 999px; padding: 8px 16px;
+  font-weight: 700; font-size: 12px; letter-spacing: .4px; color: var(--ink); background: #fff;
+  transition: border-color .2s ease, color .2s ease;
+}
+.seances .btn-today:hover { border-color: var(--green); color: var(--green); }
+
+.seances .segmented { background: #f3f7f1; border: 1px solid var(--line); border-radius: 999px; padding: 3px; }
+.seances .segmented button { border-radius: 999px; padding: 6px 16px; font-size: 13px; }
+.seances .segmented button.active { background: var(--green); color: #fff; box-shadow: 0 4px 14px -4px rgba(31, 122, 58, .4); }
+
+.seances .filters { max-width: none; flex: 1 1 100%; gap: 8px; }
+.seances .filters-label { font-size: 12px; letter-spacing: 1.4px; color: var(--muted); margin-right: 4px; }
+/* Filtres = pastilles ShootApp (comme les filtres Entraîneurs) */
+.seances .chip.chip-groupe {
+  padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(16, 48, 30, .16);
+  background: #fff; color: var(--ink); font-size: 13px; font-weight: 600;
+  transition: border-color .2s ease, color .2s ease, transform .2s ease;
+}
+.seances .chip.chip-groupe:hover { border-color: var(--green); color: var(--green); transform: translateY(-1px); }
+.seances .chip.chip-groupe.active {
+  background: var(--green); border-color: var(--green); color: #fff;
+  box-shadow: 0 4px 14px -4px rgba(31, 122, 58, .4);
+}
+.seances .chip.chip-groupe.active .chip-dot { background: var(--lime-sa); }
+
+/* ---------- KPI ---------- */
+.seances .kpi { border-top: 1px solid var(--line); }
+.seances .kpi-top > span:first-child { letter-spacing: 1.4px; font-size: 11px; }
+.seances .kpi-val { font-family: "Barlow Condensed", "Inter", sans-serif; }
+.seances .kpi-dark { border: 0; }
+
+/* ---------- Titres de section : Barlow Condensed comme ShootApp ---------- */
+.seances h2 {
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800;
+  font-size: 20px; letter-spacing: .4px; text-transform: uppercase; color: var(--ink);
+}
+
+/* ---------- Bas de page : terrain à hauteur raisonnable ---------- */
+.seances .bottom { gap: 16px; align-items: start; }
+.seances .pitch { height: 340px; border-radius: 12px; }
+.seances .tactic-foot { flex-wrap: wrap; gap: 8px 16px; }
+
+/* ---------- Boutons secondaires des jours ---------- */
+.seances .btn-edit, .seances .day-foot .btn-ghost { border-radius: 999px; }
+.seances .day-foot .btn-ghost { box-shadow: none; height: auto; }
+
+/* ---------- Classes homonymes de yalla.css : on annule ce qui déborde ---------- */
+.seances .pitch {                 /* yalla.css a sa propre vue terrain (page Joueurs) */
+  display: block; grid-template-columns: none; min-height: 0;
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, .25);
+}
+.seances .chip i { width: auto; height: auto; background: none; box-shadow: none; }
+.seances .err { display: block; margin-top: 4px; }
+
+/* Le planning reste lisible sur les écrans moyens */
+@media (max-width: 1280px) {
+  .seances .kpis { grid-template-columns: repeat(2, 1fr); }
+  .seances .bottom { grid-template-columns: 1fr; }
+}
+
+/* ---------- Popups : toujours dans l'écran, boutons toujours visibles ----------
+   (le projet d'origine était affiché à 80 % ; dans ShootApp la page est à 100 %) */
+.seances .modal { max-height: calc(100vh - 48px); max-height: calc(100dvh - 48px); }
+.seances .modal-foot {
+  position: sticky; bottom: 0; z-index: 5;
+  background: #fff; margin-bottom: -1px; padding-bottom: 16px;
+  box-shadow: 0 -12px 16px -12px rgba(16, 48, 30, .18);
+}
+
+/* ---------- Tableau tactique : bascule 2D / 3D et caméras ---------- */
+.seances .tactic-head .t3d-switch { margin-left: auto; }
+.seances .tactic-head .t3d-switch + .pill-dispo { margin-left: 0; }
+.seances .t3d-switch, .seances .t3d-cams {
+  display: inline-flex; gap: 2px; padding: 3px;
+  background: #f3f7f1; border: 1px solid var(--line); border-radius: 999px;
+}
+.seances .t3d-switch button, .seances .t3d-cams button {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 700; color: var(--ink-2);
+  transition: background .2s ease, color .2s ease;
+}
+.seances .t3d-switch button svg, .seances .t3d-cams button svg { width: 15px; height: 15px; }
+.seances .t3d-switch button:hover, .seances .t3d-cams button:hover { color: var(--green); }
+.seances .t3d-switch button.active { background: var(--green); color: #fff; box-shadow: 0 4px 14px -4px rgba(31, 122, 58, .4); }
+.seances .t3d-switch button[disabled] { opacity: .4; cursor: not-allowed; }
+
+.seances .t3d {
+  position: relative; margin-top: 16px; height: 460px;
+  border-radius: 12px; overflow: hidden; background: #eef5ef;
+  border: 1px solid var(--line);
+}
+.seances .t3d canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.seances .t3d canvas:active { cursor: grabbing; }
+.seances .t3d-cams {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+  background: rgba(255, 255, 255, .92); backdrop-filter: blur(8px);
+  box-shadow: var(--shadow-sm-sa);
+}
+.seances .t3d-cams button.active { background: var(--lime-sa); color: var(--ink); }
+
+/* ---------- Pions = joueurs convoqués à la prochaine séance ---------- */
+.seances .tac-seance {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px;
+  background: var(--green-soft); color: var(--green); font-size: 12px; font-weight: 700;
+}
+.seances .tac-seance svg { width: 14px; height: 14px; }
+.seances .player { width: 30px; height: 30px; font-size: 12px; overflow: visible; }
+.seances .player b { position: relative; z-index: 1; font-weight: 800; }
+.seances .player-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; pointer-events: none;
+}
+.seances .player-photo + b {               /* numéro en petite pastille quand il y a une photo */
+  position: absolute; right: -8px; top: -8px; min-width: 16px; height: 16px; padding: 0 3px;
+  border-radius: 999px; background: var(--ink); color: #fff; font-size: 9.5px; display: grid; place-items: center;
+}
+.seances .player-nom {
+  position: absolute; top: calc(100% + 3px); left: 50%; transform: translateX(-50%);
+  white-space: nowrap; font-style: normal; font-size: 10.5px; font-weight: 700; color: #fff;
+  background: rgba(15, 33, 24, .72); padding: 1px 6px; border-radius: 999px; pointer-events: none;
+}
+.seances .tac-banc { color: var(--ink-2); }
+.seances .tactic-head { flex-wrap: wrap; row-gap: 8px; }
+.seances .tactic-head h2, .seances .t3d-switch button, .seances .pill-dispo, .seances .tac-seance { white-space: nowrap; }

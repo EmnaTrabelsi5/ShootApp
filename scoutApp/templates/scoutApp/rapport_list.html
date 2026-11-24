@@ -1,0 +1,47 @@
+{% extends "scoutApp/base.html" %}
+{% load footlab %}
+{% block title %}Rapports de scouting • YALLA{% endblock %}
+{% block content %}
+<header class="scout-page-heading">
+  <div>
+    <p class="eyebrow"><span class="live-dot"></span>Analyse des joueurs</p>
+    <h1>Rapports de scouting</h1>
+    <p>Consultez les évaluations techniques, physiques, tactiques et mentales réalisées par les scouts.</p>
+  </div>
+  <a class="btn btn-primary" href="{% url 'scoutApp:rapport-create' %}">
+    <span class="btn-ic">{% icon "plus" %}</span><span>Nouveau rapport</span>
+  </a>
+</header>
+
+<section class="scout-panel">
+  <header class="scout-panel-head">
+    <h2>{% icon "clipboard" %}Rapports enregistrés</h2>
+    <span class="scout-status">{{ rapports|length }} rapport{{ rapports|length|pluralize }}</span>
+  </header>
+  <div class="scout-table-wrap">
+    <table class="scout-table scout-table-wide">
+      <thead><tr><th>Joueur</th><th>Scout</th><th>Date</th><th>Technique</th><th>Physique</th><th>Tactique</th><th>Mentale</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for rapport in rapports %}
+      <tr>
+        <td><strong>{{ rapport.joueur.prenom }} {{ rapport.joueur.nom }}</strong></td>
+        <td>{{ rapport.scout.prenom }} {{ rapport.scout.nom }}</td>
+        <td>{{ rapport.date_rapport|date:"d/m/Y" }}</td>
+        <td>{{ rapport.evaluation_technique }}/10</td>
+        <td>{{ rapport.evaluation_physique }}/10</td>
+        <td>{{ rapport.evaluation_tactique }}/10</td>
+        <td>{{ rapport.evaluation_mentale }}/10</td>
+        <td class="scout-table-actions">
+          <a href="{% url 'scoutApp:rapport-detail' rapport.pk %}">Voir</a>
+          <a href="{% url 'scoutApp:rapport-update' rapport.pk %}">Modifier</a>
+          <a href="{% url 'scoutApp:rapport-delete' rapport.pk %}">Supprimer</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8"><div class="scout-empty">Aucun rapport enregistré.</div></td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,549 @@
+/* =========================================================
+   FOOTLAB PRO • Couche "Street" : graffitis & stickers foot
+   (polices OFL incluses localement, stickers SVG originaux)
+   ========================================================= */
+@font-face {
+  font-family: "Permanent Marker";
+  src: url("../fonts/permanent-marker.woff2") format("woff2");
+  font-display: swap;
+}
+@font-face {
+  font-family: "Rubik Spray Paint";
+  src: url("../fonts/rubik-spray-paint.woff2") format("woff2");
+  font-display: swap;
+}
+
+/* ---------- Fond tagué (bombe de peinture) ---------- */
+.main {
+  background:
+    url("../img/spray.svg") right -120px top -80px / 900px auto no-repeat,
+    url("../img/spray.svg") left -200px bottom -260px / 760px auto no-repeat;
+}
+.card, .kpi, .week, .head-card, .side-match { position: relative; }
+
+/* ---------- Stickers ---------- */
+.sticker {
+  position: absolute; z-index: 5; pointer-events: none; user-select: none;
+  filter:
+    drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff)
+    drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(0 6px 8px rgba(15, 23, 42, .28));
+  transition: transform .25s ease;
+}
+.st-ballon  { width: 62px;  top: -16px;  right: 26px;   transform: rotate(14deg); }
+.st-goal    { width: 84px;  top: -30px;  right: -14px;  transform: rotate(12deg); }
+.st-plot    { width: 38px;  bottom: -14px; left: -10px; transform: rotate(-14deg); }
+.st-sifflet { width: 64px;  top: -18px;  right: 18px;   transform: rotate(-10deg); }
+.st-crampon { width: 74px;  bottom: -16px; left: -18px; transform: rotate(-8deg); }
+.st-coupe   { width: 40px;  top: -22px;  right: 34px;   transform: rotate(10deg); }
+.st-maillot { width: 60px;  bottom: 18px; left: 18px;   transform: rotate(-12deg); }
+.st-mvp     { width: 44px;  bottom: 30px; right: 22px;  transform: rotate(16deg); }
+
+/* Petite animation "décollage" au survol de la carte */
+.card:hover > .sticker, .kpi:hover > .sticker { transform: rotate(0deg) scale(1.08); }
+
+/* ---------- Titre au marqueur fluo ---------- */
+.marker {
+  background: linear-gradient(transparent 62%, rgba(250, 204, 21, .75) 62%, rgba(250, 204, 21, .75) 90%, transparent 90%);
+  padding: 0 4px; margin: 0 -4px;
+}
+
+/* ---------- Tag "Allez les Verts !" dans l'en-tête ---------- */
+.graff {
+  position: absolute; pointer-events: none; user-select: none;
+  font-family: "Permanent Marker", cursive;
+}
+.graff-allez {
+  left: 470px; top: 54px;
+  font-size: 24px; white-space: nowrap; color: var(--green);
+  transform: rotate(-6deg);
+  text-shadow: 3px 3px 0 #facc15;
+  opacity: .9;
+}
+.graff-allez::after {          /* coulure de peinture */
+  content: ""; position: absolute; left: 38%; top: 82%;
+  width: 4px; height: 22px; border-radius: 3px;
+  background: var(--green); opacity: .7;
+  box-shadow: 46px -4px 0 -1px var(--green), 92px 2px 0 0 #facc15;
+}
+
+/* ---------- Mur graffiti de la sidebar ---------- */
+.graff-wall {
+  position: relative; margin: 8px 10px 26px; flex: 1; min-height: 210px; max-height: 300px;
+  border-radius: var(--radius); overflow: hidden;
+  background:
+    url("../img/spray-dark.svg") center / cover no-repeat,
+    linear-gradient(rgba(255,255,255,.04) 2px, transparent 2px) 0 0 / 100% 26px,
+    linear-gradient(90deg, rgba(255,255,255,.04) 2px, transparent 2px) 0 0 / 52px 26px,
+    var(--green-deep);
+}
+.graff-wall > .sticker { filter:
+    drop-shadow(3px 0 0 #fff) drop-shadow(-3px 0 0 #fff)
+    drop-shadow(0 3px 0 #fff) drop-shadow(0 -3px 0 #fff)
+    drop-shadow(0 6px 8px rgba(0,0,0,.45)); }
+.tag-big {
+  position: absolute; left: 14px; top: 18px;
+  font-family: "Rubik Spray Paint", "Permanent Marker", cursive;
+  font-size: 54px; line-height: 1; color: #facc15;
+  transform: rotate(-7deg);
+  text-shadow: 0 0 10px rgba(250, 204, 21, .45);
+}
+.tag-small {
+  position: absolute; left: 92px; top: 76px;
+  font-family: "Permanent Marker", cursive;
+  font-size: 22px; color: #fff; transform: rotate(-7deg);
+}
+.tag-crown {
+  position: absolute; right: 14px; top: 14px;
+  font-family: "Permanent Marker", cursive; font-size: 14px; color: #4ade80;
+  transform: rotate(8deg);
+}
+.graff-arrow { position: absolute; left: 70px; top: 112px; width: 96px; transform: rotate(8deg); }
+
+/* ---------- Graffiti à la craie sur le terrain ---------- */
+.pitch-tag {
+  position: absolute; left: 30%; top: 12%;
+  font-family: "Permanent Marker", cursive; font-size: 26px;
+  color: rgba(255, 255, 255, .85); transform: rotate(-8deg);
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, .25);
+}
+.pitch-arrow { position: absolute; left: 31%; top: 26%; width: 150px; opacity: .8; }
+
+/* ---------- Carte match : peinture en fond ---------- */
+.kpi-dark {
+  background:
+    url("../img/spray-dark.svg") center / cover no-repeat,
+    var(--green-deep);
+}
+.kpi-dark .kpi-val { font-family: "Permanent Marker", "Inter", sans-serif; font-weight: 400; font-size: 19px; letter-spacing: .5px; white-space: nowrap; }
+.kpi-dark .kpi-tag { white-space: nowrap; }
+
+/* Carte match du samedi façon "tag" */
+.slot-match strong { font-family: "Permanent Marker", "Inter", sans-serif; font-weight: 400; font-size: 14px; line-height: 1.15; color: #facc15; }
+
+/* Repos actif : petit tag */
+.slot-repos strong { font-family: "Permanent Marker", "Inter", sans-serif; font-weight: 400; font-size: 15px; }
+
+/* =========================================================
+   KPI • style "premium sport" (touche street discrète)
+   ========================================================= */
+@font-face { font-family: "Barlow Condensed"; font-weight: 700; src: url("../fonts/barlow-condensed-700.woff2") format("woff2"); font-display: swap; }
+@font-face { font-family: "Barlow Condensed"; font-weight: 800; src: url("../fonts/barlow-condensed-800.woff2") format("woff2"); font-display: swap; }
+
+.kpis { gap: 14px; }
+.kpi {
+  --c: var(--green); --soft: var(--green-soft);
+  position: relative; overflow: hidden;
+  border: 1px solid var(--line); border-top: 1px solid var(--line);
+  border-radius: 14px; min-height: 124px;
+  padding: 16px 18px 14px 22px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 8px 24px -12px rgba(15,23,42,.18);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.kpi-blue   { --c: var(--blue);   --soft: var(--blue-soft); }
+.kpi-orange { --c: var(--orange); --soft: var(--orange-soft); }
+.kpi:hover { transform: translateY(-2px); box-shadow: 0 1px 2px rgba(15,23,42,.04), 0 14px 28px -12px rgba(15,23,42,.25); }
+
+/* Barre d'accent verticale */
+.kpi:not(.kpi-dark)::before {
+  content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 4px;
+  border-radius: 0 4px 4px 0; background: var(--c);
+}
+/* Rayures diagonales façon maillot + légère touche de bombe dans le coin */
+.kpi:not(.kpi-dark)::after {
+  content: ""; position: absolute; right: -30px; top: -30px; width: 150px; height: 150px;
+  background:
+    repeating-linear-gradient(135deg, color-mix(in srgb, var(--c) 9%, transparent) 0 8px, transparent 8px 16px);
+  -webkit-mask: radial-gradient(circle at 100% 0, #000 30%, transparent 70%);
+          mask: radial-gradient(circle at 100% 0, #000 30%, transparent 70%);
+  pointer-events: none;
+}
+.kpi > * { position: relative; z-index: 1; }
+
+.kpi-top > span:first-child { font-family: "Inter", sans-serif; font-weight: 800; font-size: 11px; letter-spacing: 1px; color: var(--muted); }
+.kpi:not(.kpi-dark) .kpi-ic { background: var(--soft); color: var(--c); border-radius: 10px; width: 34px; height: 34px; }
+
+.kpi-bottom { align-items: center; margin-top: 6px; gap: 8px; }
+.kpi-val {
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800;
+  font-size: 38px; line-height: 1; letter-spacing: .2px; color: var(--ink);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.kpi-val small { font-family: "Barlow Condensed", sans-serif; font-weight: 700; font-size: 18px; color: var(--muted); }
+.kpi:not(.kpi-dark) .kpi-tag { background: var(--soft); color: var(--c); border-radius: 999px; padding: 4px 8px; font-size: 11px; font-weight: 700; white-space: nowrap; flex-shrink: 0; }
+.kpi-tag.green { color: var(--green-text) !important; }
+
+/* Jauge de progression */
+.kpi-bar { height: 5px; border-radius: 99px; background: #eef2f0; margin-top: 12px; overflow: hidden; }
+.kpi-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); }
+.kpi-note { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10.5px; color: var(--muted); font-weight: 600; }
+
+/* Carte prochain match : version graffiti d'origine */
+.kpi-dark {
+  overflow: visible; border: none;
+  background: url("../img/spray-dark.svg") center / cover no-repeat, var(--green-deep);
+}
+.kpi-dark::after { content: none; }
+.kpi-dark .kpi-top > span:first-child { color: #d1fae5; }
+.kpi-dark .kpi-val { font-family: "Permanent Marker", "Inter", sans-serif; font-weight: 400; font-size: 19px; letter-spacing: .5px; white-space: nowrap; color: #fff; }
+.kpi-dark .kpi-tag { white-space: nowrap; }
+.kpi > .sticker { position: absolute; z-index: 5; }
+
+/* =========================================================
+   Mur "FOOT is life" animé (effet GIF en boucle)
+   ========================================================= */
+.graff-wall { animation: wall-pan 14s ease-in-out infinite alternate; }
+@keyframes wall-pan {
+  from { background-position: 40% 40%, 0 0, 0 0, 0 0; }
+  to   { background-position: 60% 60%, 0 0, 0 0, 0 0; }
+}
+
+/* FOOT : néon qui pulse + léger tremblement */
+.tag-big { animation: foot-glow 2.4s ease-in-out infinite, foot-wobble 4s ease-in-out infinite; }
+@keyframes foot-glow {
+  0%, 100% { text-shadow: 0 0 6px rgba(250,204,21,.35); }
+  50%      { text-shadow: 0 0 18px rgba(250,204,21,.9), 0 0 32px rgba(250,204,21,.45); }
+  52%      { opacity: .75; } 54% { opacity: 1; }
+}
+@keyframes foot-wobble {
+  0%, 100% { transform: rotate(-7deg) scale(1); }
+  50%      { transform: rotate(-5deg) scale(1.04); }
+}
+
+/* "is life" : apparaît comme un coup de bombe */
+.tag-small { animation: spray-in 4s steps(12) infinite; }
+@keyframes spray-in {
+  0%        { clip-path: inset(0 100% 0 0); }
+  35%, 85%  { clip-path: inset(0 0 0 0); }
+  100%      { clip-path: inset(0 0 0 0); opacity: 0; }
+}
+
+/* Flèche qui se dessine */
+.arr-line, .arr-head { stroke-dasharray: 100; animation: arrow-draw 4s ease-in-out infinite; }
+.arr-head { animation-name: arrow-head; }
+@keyframes arrow-draw {
+  0%       { stroke-dashoffset: 100; }
+  40%, 85% { stroke-dashoffset: 0; opacity: 1; }
+  100%     { stroke-dashoffset: 0; opacity: 0; }
+}
+@keyframes arrow-head {
+  0%, 38%  { stroke-dashoffset: 100; }
+  50%, 85% { stroke-dashoffset: 0; opacity: 1; }
+  100%     { stroke-dashoffset: 0; opacity: 0; }
+}
+
+/* Ballon qui roule le long de la flèche */
+.wall-ball {
+  position: absolute; left: 0; top: 0; width: 20px; height: 20px;
+  offset-path: path("M72 150 C98 122 132 116 160 132");
+  offset-rotate: 0deg;
+  animation: ball-roll 4s ease-in-out infinite;
+  filter: drop-shadow(0 3px 3px rgba(0,0,0,.45));
+}
+@keyframes ball-roll {
+  0%, 10%  { offset-distance: 0%;   transform: rotate(0);      opacity: 0; }
+  15%      { opacity: 1; }
+  55%      { offset-distance: 100%; transform: rotate(540deg); opacity: 1; }
+  70%      { offset-distance: 100%; transform: rotate(540deg) scale(1.3); opacity: 0; }
+  100%     { offset-distance: 100%; opacity: 0; }
+}
+
+/* Stickers qui bougent */
+.graff-wall > .st-maillot { animation: sway 3s ease-in-out infinite; }
+@keyframes sway { 0%, 100% { transform: rotate(-12deg); } 50% { transform: rotate(-2deg) translateY(-4px); } }
+.graff-wall > .st-mvp { animation: star-pop 2.2s ease-in-out infinite; }
+@keyframes star-pop {
+  0%, 100% { transform: rotate(16deg) scale(1); }
+  50%      { transform: rotate(-8deg) scale(1.15); }
+}
+.tag-crown { animation: blink 1.6s steps(2) infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+
+/* Coulures de peinture */
+.drip {
+  position: absolute; top: 0; width: 4px; border-radius: 0 0 3px 3px;
+  background: #facc15; opacity: .85; animation: drip 5s ease-in infinite;
+}
+.drip::after { content: ""; position: absolute; bottom: -4px; left: -2px; width: 8px; height: 8px; border-radius: 50%; background: inherit; }
+.drip.d1 { left: 38px;  animation-delay: 0s; }
+.drip.d2 { left: 96px;  animation-delay: 1.6s; background: #4ade80; }
+.drip.d3 { left: 150px; animation-delay: 3.1s; }
+@keyframes drip {
+  0%   { height: 0;    opacity: .9; }
+  60%  { height: 46px; opacity: .9; }
+  100% { height: 60px; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graff-wall, .graff-wall * { animation: none !important; }
+  .wall-ball, .drip { display: none; }
+}
+
+/* =========================================================
+   Navigation : sélection style "premium sport" (comme les KPI)
+   ========================================================= */
+.topnav { gap: 4px; align-self: stretch; }
+.topnav a {
+  position: relative; overflow: hidden; display: flex; align-items: center;
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 700;
+  font-size: 15.5px; line-height: 1.1; letter-spacing: .4px; text-transform: uppercase;
+  color: var(--muted); padding: 0 22px; min-width: 0; border-radius: 0;
+  background: none; box-shadow: none;
+  transition: color .2s ease, background .2s ease;
+}
+/* barre de soulignement */
+.topnav a::after {
+  content: ""; position: absolute; left: 18px; right: 18px; bottom: 0; height: 4px;
+  border-radius: 4px 4px 0 0; background: var(--green);
+  transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+}
+.topnav a:hover { color: var(--ink); background: linear-gradient(transparent, rgba(11,107,58,.05)); }
+.topnav a:hover::after { transform: scaleX(.35); opacity: .5; }
+
+.topnav a.active {
+  color: var(--green); font-weight: 800; box-shadow: none;
+  background:
+    repeating-linear-gradient(135deg, rgba(11,107,58,.08) 0 7px, transparent 7px 14px),
+    linear-gradient(transparent, var(--green-soft));
+}
+.topnav a.active::after { transform: scaleX(1); opacity: 1; }
+.topnav a.active::before {           /* petite pastille jaune */
+  content: ""; position: absolute; top: 14px; right: 10px; width: 6px; height: 6px;
+  border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 3px rgba(250,204,21,.25);
+}
+
+/* ---------- Sidebar ---------- */
+.side-nav a {
+  position: relative; overflow: hidden; margin-right: 12px;
+  border-radius: 0 12px 12px 0; transition: background .2s ease, color .2s ease;
+}
+.side-nav a::before {
+  content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 4px;
+  border-radius: 0 4px 4px 0; background: var(--green);
+  transform: scaleY(0); transition: transform .2s ease;
+}
+.side-nav a:hover { background: #f4f8f5; }
+.side-nav a:hover::before { transform: scaleY(.5); }
+.side-nav a.active {
+  background:
+    repeating-linear-gradient(135deg, rgba(11,107,58,.07) 0 7px, transparent 7px 14px) right / 60px 100% no-repeat,
+    var(--green-soft);
+  color: var(--green); font-weight: 800;
+}
+.side-nav a.active::before { transform: scaleY(1); }
+.side-nav a.active svg { color: var(--green); }
+
+/* =========================================================
+   Sélection style "jour de match" (bleu nuit + jaune)
+   ========================================================= */
+.topnav { align-items: center; }
+.topnav a { align-self: center; padding: 9px 20px; border-radius: 10px; }
+.topnav a::after { display: none; }
+.topnav a.active {
+  background: var(--navy); color: #fff;
+  box-shadow: 0 6px 14px -6px rgba(15,23,42,.55);
+  padding-left: 30px;
+}
+.topnav a.active::before {
+  top: 50%; left: 14px; right: auto; transform: translateY(-50%);
+  width: 7px; height: 7px; background: var(--yellow);
+  box-shadow: 0 0 0 3px rgba(250,204,21,.2);
+}
+.topnav a.active { text-shadow: none; }
+.topnav a.active { color: var(--yellow); }
+.topnav a:hover:not(.active) { background: #f1f5f9; color: var(--ink); }
+
+.side-nav a.active {
+  background: var(--navy); color: #fff; font-weight: 700;
+  box-shadow: 0 6px 14px -6px rgba(15,23,42,.55);
+}
+.side-nav a.active::before {
+  transform: none; left: auto; right: 14px; top: 50%; bottom: auto;
+  width: 7px; height: 7px; border-radius: 50%; margin-top: -3.5px;
+  background: var(--yellow); box-shadow: 0 0 0 3px rgba(250,204,21,.2);
+}
+.side-nav a.active svg { color: var(--yellow); }
+
+/* =========================================================
+   Marque YALLA (graffiti)
+   ========================================================= */
+a.brand { text-decoration: none; color: inherit; width: 200px; gap: 10px; }
+.brand-logo-img {
+  width: 46px; height: 46px; flex-shrink: 0;
+  filter: drop-shadow(0 4px 6px rgba(15,23,42,.25));
+  transition: transform .3s ease;
+}
+a.brand:hover .brand-logo-img { transform: rotate(-12deg) scale(1.06); }
+.brand-yalla {
+  position: relative; display: inline-block;
+  font-family: "Rubik Spray Paint", "Permanent Marker", cursive;
+  font-size: 31px; line-height: 1; letter-spacing: 1px;
+  color: var(--green);
+  text-shadow: 2px 2px 0 var(--yellow), 3px 3px 0 var(--navy);
+  transform: rotate(-4deg);
+}
+/* petites coulures sous le tag */
+.brand-yalla::after {
+  content: ""; position: absolute; left: 22%; top: 88%;
+  width: 3px; height: 9px; border-radius: 0 0 3px 3px; background: var(--green);
+  box-shadow: 38px -2px 0 0 var(--green), 62px 1px 0 -0.5px var(--yellow);
+}
+.brand .brand-sub { margin-top: 6px; font-size: 7.5px; letter-spacing: 1.2px; }
+
+/* =========================================================
+   Profil du coach au centre du bandeau, style graffiti
+   ========================================================= */
+.coach-tag {
+  position: absolute; left: 50%; top: 50%;
+  transform: translate(-50%, -50%) rotate(-1.5deg);
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 16px 6px 6px; border-radius: 14px;
+  background: url("../img/spray.svg") center / 260px auto no-repeat, var(--green-soft);
+  border: 2px solid var(--green);
+  box-shadow: 4px 4px 0 var(--yellow);
+  transition: transform .25s ease;
+}
+.coach-tag:hover { transform: translate(-50%, -50%) rotate(0deg) scale(1.03); }
+.coach-tag .avatar {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: var(--green); color: var(--yellow);
+  font-family: "Permanent Marker", cursive; font-weight: 400; font-size: 16px;
+  border: 3px solid var(--yellow); transform: rotate(-8deg);
+  box-shadow: 2px 2px 0 var(--navy);
+}
+.coach-tag .coach-name {
+  font-family: "Permanent Marker", cursive; font-weight: 400; font-size: 18px; line-height: 1.05;
+  color: var(--green); text-shadow: 1.5px 1.5px 0 var(--yellow); white-space: nowrap;
+}
+.coach-kicker {
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 11px;
+  letter-spacing: 1.5px; text-transform: uppercase; text-shadow: none;
+  color: #fff; background: var(--navy); padding: 1px 6px; border-radius: 4px;
+  margin-right: 7px; vertical-align: 3px;
+}
+.coach-tag .coach-role {
+  margin-top: 3px; font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 700;
+  font-size: 12px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--ink-2);
+}
+.coach-tag .badge-senior {
+  align-self: center; white-space: nowrap;
+  background: var(--yellow); color: var(--navy);
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 12px;
+  letter-spacing: 1px; text-transform: uppercase; padding: 4px 9px; border-radius: 6px;
+  transform: rotate(5deg); box-shadow: 2px 2px 0 var(--navy);
+}
+
+/* =========================================================
+   Bandeau du haut : mur vert graffiti
+   ========================================================= */
+.topbar {
+  height: 72px; border-bottom: none; overflow: visible;
+  background:
+    url("../img/spray-dark.svg") 22% 40% / 520px auto no-repeat,
+    url("../img/spray-dark.svg") 88% 60% / 420px auto no-repeat,
+    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 26px, transparent 26px 52px),
+    linear-gradient(90deg, var(--green-deep), var(--green-dark) 50%, var(--green-deep));
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.12);
+}
+/* coulures de peinture sous le bandeau */
+.topbar::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 16px; pointer-events: none;
+  background: var(--green-deep);
+  -webkit-mask: url("../img/drip.svg") 0 0 / 520px 16px repeat-x;
+          mask: url("../img/drip.svg") 0 0 / 520px 16px repeat-x;
+}
+.topbar .brand-yalla { color: var(--yellow); text-shadow: 2px 2px 0 var(--green), 3px 3px 0 #000; }
+.topbar .brand-yalla::after { background: var(--yellow); box-shadow: 38px -2px 0 0 var(--yellow), 62px 1px 0 -0.5px #4ade80; }
+.topbar .brand .brand-sub { color: rgba(255,255,255,.7); }
+.topbar .coach-tag { box-shadow: 4px 4px 0 var(--yellow), 0 10px 22px -10px rgba(0,0,0,.6); }
+
+.top-tags { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+.top-tags span {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 13px;
+  letter-spacing: 1px; text-transform: uppercase; border-radius: 7px; padding: 5px 10px;
+}
+.top-tags svg { width: 14px; height: 14px; }
+.tt-date { color: #fff; border: 1.5px dashed rgba(255,255,255,.45); }
+.tt-week { background: var(--yellow); color: var(--navy); transform: rotate(-4deg); box-shadow: 2px 2px 0 #000; }
+.tt-saison { background: #fff; color: var(--green-deep); transform: rotate(3deg); box-shadow: 2px 2px 0 var(--yellow); }
+
+/* =========================================================
+   Carte "Prochain match" : affiche du match
+   ========================================================= */
+.kpi-match {
+  display: flex; flex-direction: column; gap: 8px; padding-bottom: 12px;
+  background:
+    radial-gradient(circle at 50% 120%, rgba(250,204,21,.16), transparent 55%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 18px, transparent 18px 36px),
+    linear-gradient(135deg, var(--green-deep), #0a5a31);
+}
+.km-top { display: flex; justify-content: flex-start; align-items: center; gap: 10px; }
+.km-label { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; font-size: 11px; letter-spacing: 1px; color: #d1fae5; }
+.km-j {
+  font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 14px; letter-spacing: .5px;
+  background: var(--yellow); color: var(--navy); padding: 2px 9px; border-radius: 6px;
+  transform: rotate(-4deg); box-shadow: 2px 2px 0 #000;
+}
+.km-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; }
+.km-team { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.km-team > span:last-child {
+  font-family: "Permanent Marker", cursive; font-size: 14px; color: #fff; line-height: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+}
+.km-logo { width: 36px; height: 36px; filter: drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+.km-shield {
+  width: 32px; height: 36px; display: grid; place-items: center;
+  background: #fff; color: var(--green-deep);
+  clip-path: polygon(50% 0, 100% 14%, 100% 58%, 50% 100%, 0 58%, 0 14%);
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,.35));
+}
+.km-shield b { font-family: "Barlow Condensed", "Inter", sans-serif; font-weight: 800; font-size: 14px; margin-top: -3px; }
+.km-vs {
+  font-family: "Rubik Spray Paint", "Permanent Marker", cursive; font-size: 24px; line-height: 1;
+  color: var(--yellow); text-shadow: 2px 2px 0 #000; transform: rotate(-6deg);
+}
+.km-infos { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 10px; padding-top: 7px; border-top: 1px dashed rgba(255,255,255,.2); }
+.km-infos span { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; color: #d1fae5; white-space: nowrap; }
+.km-infos svg { width: 12px; height: 12px; color: var(--yellow); }
+.km-comp { color: var(--yellow) !important; }
+.km-vide { margin: auto; font-family: "Permanent Marker", cursive; font-size: 16px; color: #d1fae5; }
+
+/* Logo de l'adversaire (fourni par le module Match) */
+.km-logo-adv { object-fit: contain; background: #fff; border-radius: 8px; padding: 3px; }
+.slot-logo { width: 34px; height: 34px; object-fit: contain; background: #fff; border-radius: 8px; padding: 3px; margin: 4px 0 2px; }
+
+/* =========================================================
+   Tableau tactique : glisser-déposer
+   ========================================================= */
+.pitch [data-drag] { cursor: grab; touch-action: none; user-select: none; transition: scale .15s ease, box-shadow .15s ease, filter .15s ease; }
+.pitch [data-drag]:hover { scale: 1.12; filter: drop-shadow(0 0 6px rgba(250,204,21,.8)); z-index: 4; }
+.pitch [data-drag]:focus-visible { outline: 2px solid var(--yellow); outline-offset: 3px; }
+.pitch [data-drag].dragging { cursor: grabbing; scale: 1.25; z-index: 6; filter: drop-shadow(0 8px 10px rgba(0,0,0,.45)); transition: none; }
+.pitch.is-dragging { cursor: grabbing; }
+.pitch.is-dragging::after {      /* quadrillage léger pendant le déplacement */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
+  background-size: 5% 10%;
+}
+.pitch [data-drag].snap { transition: left .35s ease, top .35s ease; }
+.pitch-arrow[data-drag] { pointer-events: auto; }
+
+.tac-save { margin-left: auto; font-size: 11px; font-weight: 700; color: var(--muted); }
+.tac-save.ok { color: var(--green); }
+.tac-save.ko { color: var(--red); }
+.tac-save + .pill-dispo { margin-left: 0; }
+.tac-hint { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.tac-hint svg { width: 13px; height: 13px; color: var(--green); }
+.tac-reset {
+  display: inline-flex; align-items: center; gap: 5px; color: var(--green); font-weight: 800; font-size: 11.5px;
+  padding: 5px 9px; border-radius: 7px; border: 1px solid var(--line); background: #fff;
+}
+.tac-reset:hover { background: var(--green-soft); }
+.tac-reset svg { width: 13px; height: 13px; }
+
+/* Dispositif détecté automatiquement + sifflet déplacé (ne cache plus le badge) */
+#tac-dispo b { font-weight: 900; letter-spacing: .5px; }
+#tac-dispo.pulse { animation: dispo-pulse .5s ease; }
+@keyframes dispo-pulse { 0% { transform: scale(1); } 40% { transform: scale(1.12); background: var(--yellow); color: var(--navy); } 100% { transform: scale(1); } }
