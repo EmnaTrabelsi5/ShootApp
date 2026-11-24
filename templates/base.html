@@ -32,6 +32,7 @@
     <nav class="rail-nav">
       <span class="rail-indicator" aria-hidden="true"></span>
       <a href="{% url 'joueurs:liste' %}" class="rail-link {% block nav_vestiaire %}{% endblock %}" data-tip="Joueurs : vestiaire et effectif"{% block nav_joueurs_current %} aria-current="page"{% endblock %}>{% icon "users" %}<span>Joueurs</span></a>
+      {% if peut_gerer_composition %}<a href="{% url 'entraineur:composition' %}" class="rail-link {% block nav_composition %}{% endblock %}" data-tip="Composition tactique">{% icon "clipboard" %}<span>Composition</span></a>{% endif %}
       {% if peut_voir_entraineurs %}<a href="{% url 'entraineur:liste' %}" class="rail-link {% block nav_entraineur %}{% endblock %}" data-tip="Entraîneurs : staff et encadrement"{% block nav_entraineurs_current %}{% endblock %}>{% icon "clipboard" %}<span>Entraîneurs</span></a>{% endif %}
       <span class="rail-link is-soon" role="link" aria-disabled="true" data-tip="Scouts : bientôt">{% icon "binoculars" %}<span>Scouts</span><em>Bientôt</em></span>
       <span class="rail-link is-soon" role="link" aria-disabled="true" data-tip="Entraînements : bientôt">{% icon "calendar" %}<span>Séances</span><em>Bientôt</em></span>

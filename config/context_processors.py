@@ -11,12 +11,14 @@ def entete(request):
     a_dashboard = False
     peut_voir_staff = False
     peut_gerer_staff = False
+    peut_gerer_compo = False
 
     if user is not None and user.is_authenticated:
         from utilisateurApp.roles import (
             LIBELLES,
             a_acces_dashboard,
             est_admin,
+            peut_gerer_composition,
             peut_gerer_entraineurs,
             peut_voir_entraineurs,
         )
@@ -27,6 +29,7 @@ def entete(request):
         a_dashboard = a_acces_dashboard(user)
         peut_voir_staff = peut_voir_entraineurs(user)
         peut_gerer_staff = peut_gerer_entraineurs(user)
+        peut_gerer_compo = peut_gerer_composition(user)
         role_court = "Admin" if admin else user.get_role_display()
         role_libelle = LIBELLES.get("ADMIN" if admin else user.role, role_court)
 
@@ -62,5 +65,6 @@ def entete(request):
         "a_acces_dashboard": a_dashboard,
         "peut_voir_entraineurs": peut_voir_staff,
         "peut_gerer_entraineurs": peut_gerer_staff,
+        "peut_gerer_composition": peut_gerer_compo,
         "prochain_match": prochain_match,
     }

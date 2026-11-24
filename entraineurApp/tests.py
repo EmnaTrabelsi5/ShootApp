@@ -1,12 +1,15 @@
 from datetime import date, timedelta
+import json
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
 from equipeApp.models import Equipe
+from joueurApp.models import Joueur
 from utilisateurApp.models import Utilisateur
 from .forms import EntraineurForm
-from .models import Entraineur
+from .models import Composition, Entraineur
 
 
 class EntraineurTests(TestCase):
@@ -114,6 +117,192 @@ class EntraineurTests(TestCase):
         # Tentative de création -> bloqué et redirigé
         r_creer = self.client.get(reverse("entraineur:creer"))
         self.assertEqual(r_creer.status_code, 302)
+
+    def creer_effectif_composition(self):
+        postes = [
+            Joueur.Poste.GARDIEN,
+            Joueur.Poste.DEFENSEUR,
+            Joueur.Poste.DEFENSEUR,
+            Joueur.Poste.DEFENSEUR,
+            Joueur.Poste.DEFENSEUR,
+            Joueur.Poste.MILIEU,
+            Joueur.Poste.MILIEU,
+            Joueur.Poste.MILIEU,
+            Joueur.Poste.ATTAQUANT,
+            Joueur.Poste.ATTAQUANT,
+            Joueur.Poste.ATTAQUANT,
+            Joueur.Poste.MILIEU,
+        ]
+        return [
+            Joueur.objects.create(
+                email=f"composition-{index}@shootapp.tn",
+                nom=f"Joueur{index}",
+                prenom="Test",
+                poste=poste,
+                equipe=self.equipe1,
+                numero_maillot=index,
+                statut=Joueur.Statut.DISPONIBLE,
+            )
+            for index, poste in enumerate(postes, start=1)
+        ]
+
+    def promouvoir_entraineur_principal(self):
+        self.coach.type = Entraineur.TypeEntraineur.PRINCIPAL
+        self.coach.fonction = Entraineur.Fonction.PRINCIPAL
+        self.coach.save()
+
+    def test_composition_reservee_a_l_entraineur_principal(self):
+        self.client.force_login(self.coach)
+        self.assertEqual(
+            self.client.get(reverse("entraineur:composition")).status_code,
+            302,
+        )
+        response = self.client.post(
+            reverse("entraineur:sauvegarder_composition"),
+            data=json.dumps({"titulaires": [], "remplacants": []}),
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 302)
+        response = self.client.post(
+            reverse("entraineur:supprimer_composition", args=[1])
+        )
+        self.assertEqual(response.status_code, 302)
+
+        self.promouvoir_entraineur_principal()
+        response = self.client.get(reverse("entraineur:composition"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Composition")
+        self.assertContains(response, "Banc des remplaçants")
+
+    def test_sauvegarde_composition_avec_titulaires_et_remplacants(self):
+        self.promouvoir_entraineur_principal()
+        joueurs = self.creer_effectif_composition()
+        self.client.force_login(self.coach)
+        payload = {
+            "nom": "Onze du dimanche",
+            "dispositif": "4-3-3",
+            "capitaine_id": joueurs[5].pk,
+            "penalty_id": joueurs[8].pk,
+            "coup_franc_id": joueurs[6].pk,
+            "titulaires": [
+                {
+                    "slot_index": index,
+                    "joueur_id": joueur.pk,
+                    "poste_tactique": joueur.poste,
+                    "x": 50,
+                    "y": 50,
+                }
+                for index, joueur in enumerate(joueurs[:11], start=1)
+            ],
+            "remplacants": [{"slot_index": 1, "joueur_id": joueurs[11].pk}],
+        }
+
+        response = self.client.post(
+            reverse("entraineur:sauvegarder_composition"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        result = response.json()
+        self.assertTrue(result["ok"])
+        composition = Composition.objects.get(pk=result["id"])
+        self.assertEqual(composition.equipe, self.equipe1)
+        self.assertEqual(composition.entraineur, self.coach)
+        self.assertEqual(composition.joueurs_compo.filter(est_titulaire=True).count(), 11)
+        self.assertEqual(composition.joueurs_compo.filter(est_titulaire=False).count(), 1)
+        self.assertEqual(composition.capitaine, joueurs[5])
+
+    def test_sauvegarde_refuse_un_onze_incomplet(self):
+        self.promouvoir_entraineur_principal()
+        joueurs = self.creer_effectif_composition()
+        self.client.force_login(self.coach)
+        payload = {
+            "dispositif": "4-3-3",
+            "titulaires": [
+                {"slot_index": index, "joueur_id": joueur.pk}
+                for index, joueur in enumerate(joueurs[:10], start=1)
+            ],
+            "remplacants": [],
+        }
+
+        response = self.client.post(
+            reverse("entraineur:sauvegarder_composition"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertFalse(response.json()["ok"])
+        self.assertFalse(Composition.objects.exists())
+
+    def test_sauvegarde_refuse_un_joueur_hors_effectif(self):
+        self.promouvoir_entraineur_principal()
+        joueurs = self.creer_effectif_composition()
+        joueur_exterieur = Joueur.objects.create(
+            email="joueur-exterieur@shootapp.tn",
+            nom="Exterieur",
+            prenom="Test",
+            poste=Joueur.Poste.ATTAQUANT,
+            equipe=self.equipe2,
+            numero_maillot=99,
+        )
+        self.client.force_login(self.coach)
+        payload = {
+            "dispositif": "4-3-3",
+            "titulaires": [
+                {"slot_index": index, "joueur_id": joueur.pk}
+                for index, joueur in enumerate(joueurs[:10], start=1)
+            ] + [{"slot_index": 11, "joueur_id": joueur_exterieur.pk}],
+            "remplacants": [],
+        }
+
+        response = self.client.post(
+            reverse("entraineur:sauvegarder_composition"),
+            data=json.dumps(payload),
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("ne font pas partie", response.json()["erreurs"][0])
+        self.assertFalse(Composition.objects.exists())
+
+    def test_suppression_limitee_aux_compositions_de_son_equipe(self):
+        self.promouvoir_entraineur_principal()
+        composition = Composition.objects.create(
+            nom="À conserver",
+            equipe=self.equipe1,
+            entraineur=self.coach,
+        )
+        autre_coach = Entraineur.objects.create(
+            email="coach-autre-equipe@shootapp.tn",
+            nom="Autre",
+            prenom="Coach",
+            type=Entraineur.TypeEntraineur.PRINCIPAL,
+            fonction=Entraineur.Fonction.PRINCIPAL,
+            equipe=self.equipe2,
+        )
+        composition_autre_equipe = Composition.objects.create(
+            nom="Composition étrangère",
+            equipe=self.equipe2,
+            entraineur=autre_coach,
+        )
+        self.client.force_login(self.coach)
+        page = self.client.get(reverse("entraineur:composition_detail", args=[composition.pk]))
+        self.assertContains(page, 'id="delete-composition-dialog"')
+        self.assertNotContains(page, "onsubmit=\"return confirm")
+
+        refus = self.client.post(
+            reverse("entraineur:supprimer_composition", args=[composition_autre_equipe.pk])
+        )
+        self.assertEqual(refus.status_code, 404)
+        self.assertTrue(Composition.objects.filter(pk=composition_autre_equipe.pk).exists())
+
+        suppression = self.client.post(
+            reverse("entraineur:supprimer_composition", args=[composition.pk])
+        )
+        self.assertRedirects(suppression, reverse("entraineur:composition"))
+        self.assertFalse(Composition.objects.filter(pk=composition.pk).exists())
 
     def test_recherche_et_filtres(self):
         """Vérifie la recherche multi-critères."""

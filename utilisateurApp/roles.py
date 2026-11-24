@@ -49,6 +49,29 @@ def peut_gerer_joueurs(user):
     return user.is_authenticated and (est_admin(user) or user.role in GERENT_JOUEURS)
 
 
+def est_entraineur_principal(user):
+    """Vérifie si l'utilisateur est entraîneur principal de son équipe."""
+    if not (user.is_authenticated and user.role == R.ENTRAINEUR):
+        return False
+    try:
+        from entraineurApp.models import Entraineur
+        coach = getattr(user, "entraineur", None)
+        if coach is None and isinstance(user, Entraineur):
+            coach = user
+        if coach:
+            f = str(coach.fonction or "").upper()
+            t = str(coach.type or "").upper()
+            return "PRINCIPAL" in f or "PRINCIPAL" in t
+    except Exception:
+        pass
+    return False
+
+
+def peut_gerer_composition(user):
+    """Seul l'entraîneur principal peut créer et modifier la composition de son équipe."""
+    return est_entraineur_principal(user)
+
+
 def accueil_du_role(user):
     """Page d'arrivée après la connexion."""
     return reverse("comptes:dashboard") if a_acces_dashboard(user) else reverse("joueurs:liste")

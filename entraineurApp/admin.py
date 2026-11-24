@@ -1,5 +1,18 @@
 from django.contrib import admin
-from .models import Entraineur, Entrainement
+from .models import Entraineur, Entrainement, Composition, JoueurComposition
+
+
+class JoueurCompositionInline(admin.TabularInline):
+    model = JoueurComposition
+    extra = 0
+
+
+@admin.register(Composition)
+class CompositionAdmin(admin.ModelAdmin):
+    list_display = ("nom", "equipe", "entraineur", "dispositif", "capitaine", "date_mise_a_jour")
+    list_filter = ("dispositif", "equipe")
+    search_fields = ("nom", "equipe__nom", "entraineur__nom")
+    inlines = [JoueurCompositionInline]
 
 
 @admin.register(Entraineur)

@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+{% load static footlab %}
+
+{% block title %}Composition tactique • {{ equipe.nom }} • YALLA{% endblock %}
+{% block nav_composition %}active{% endblock %}
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/composition.css' %}?v=1.1">
+{% endblock %}
+
+{% block content %}
+<section class="composition-page">
+  <header class="composition-heading">
+    <div>
+      <p class="composition-eyebrow">Espace entraîneur principal · {{ equipe.nom }}</p>
+      <h1>Composition <span>tactique</span></h1>
+      <p class="composition-intro">Préparez votre onze, choisissez vos remplaçants et dessinez votre plan de jeu.</p>
+    </div>
+    <div class="composition-heading-actions">
+      <a class="btn btn-ghost composition-new" href="{% url 'entraineur:composition' %}?nouvelle=1">
+        <span aria-hidden="true">＋</span> Nouvelle composition
+      </a>
+      {% if composition_active %}
+        <form method="post" action="{% url 'entraineur:supprimer_composition' composition_active.pk %}" data-delete-composition>
+          {% csrf_token %}
+          <button class="btn btn-ghost composition-delete" type="submit">Supprimer</button>
+        </form>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="composition-layout">
+    <section class="composition-main">
+      <div class="composition-panel">
+        <div class="composition-panel-head">
+          <div>
+            <p class="composition-kicker">Feuille de match</p>
+            <h2>Construisez votre onze</h2>
+          </div>
+          <span class="composition-count">{{ nb_joueurs }} joueur{{ nb_joueurs|pluralize }} au vestiaire</span>
+        </div>
+
+        <div class="composition-fields">
+          <label class="composition-field">
+            <span>Nom de la composition</span>
+            <input id="composition-name" type="text" maxlength="120" value="{% if composition_active %}{{ composition_active.nom }}{% else %}Feuille de Match Principale{% endif %}" placeholder="Ex. Plan A — championnat">
+          </label>
+          <label class="composition-field">
+            <span>Dispositif</span>
+            <select id="composition-formation">
+              {% for formation in donnees.dispositifs %}
+                <option value="{{ formation.value }}" {% if composition_active.dispositif == formation.value %}selected{% endif %}>{{ formation.value }}{% if formation.nom %} · {{ formation.nom }}{% endif %}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label class="composition-field">
+            <span>Match concerné <small>(facultatif)</small></span>
+            <select id="composition-match">
+              <option value="">Aucun match associé</option>
+              {% for match in matchs %}
+                <option value="{{ match.pk }}" {% if composition_active.match_id == match.pk %}selected{% endif %}>
+                  {{ match.date_heure|date:"d/m/Y H:i" }} · {{ match.equipe_domicile.nom }} – {{ match.equipe_exterieur.nom }}
+                </option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+
+        {% if nb_joueurs < 11 %}
+          <div class="composition-alert" role="status">Il faut au moins 11 joueurs dans votre vestiaire pour enregistrer une composition. Ajoutez des joueurs avant de continuer.</div>
+        {% endif %}
+
+        <div class="composition-pitch-wrap">
+          <div class="pitch-label pitch-label-away">{{ equipe.nom }}</div>
+          <div id="composition-pitch" class="composition-pitch" aria-label="Terrain et onze titulaire"></div>
+          <div class="pitch-label pitch-label-home">Votre onze de départ</div>
+        </div>
+        <p class="pitch-help">Choisissez un joueur par poste. Le gardien est placé dans la cage ; un joueur ne peut être sélectionné qu’une fois.</p>
+      </div>
+
+      <div class="composition-panel bench-panel">
+        <div class="composition-panel-head">
+          <div>
+            <p class="composition-kicker">Options de match</p>
+            <h2>Banc des remplaçants</h2>
+          </div>
+          <span id="bench-count" class="composition-count">0 / 9 sélectionnés</span>
+        </div>
+        <p class="bench-help">Sélectionnez jusqu’à 9 remplaçants disponibles dans votre effectif.</p>
+        <div id="composition-bench" class="bench-grid"></div>
+        <div id="bench-empty" class="composition-empty" hidden>Aucun joueur disponible en dehors du onze.</div>
+      </div>
+
+      <div class="composition-panel details-panel">
+        <div class="composition-panel-head">
+          <div>
+            <p class="composition-kicker">Responsabilités</p>
+            <h2>Consignes de match</h2>
+          </div>
+        </div>
+        <div class="composition-fields role-fields">
+          <label class="composition-field">
+            <span>Capitaine</span>
+            <select id="composition-captain"><option value="">À désigner</option></select>
+          </label>
+          <label class="composition-field">
+            <span>Tireur de penalty</span>
+            <select id="composition-penalty"><option value="">À désigner</option></select>
+          </label>
+          <label class="composition-field">
+            <span>Tireur de coup franc</span>
+            <select id="composition-free-kick"><option value="">À désigner</option></select>
+          </label>
+        </div>
+        <label class="composition-field notes-field">
+          <span>Notes tactiques <small>(facultatif)</small></span>
+          <textarea id="composition-notes" maxlength="2000" rows="3" placeholder="Pressing, transitions, consignes sur coups de pied arrêtés…">{% if composition_active %}{{ composition_active.notes_tactiques }}{% endif %}</textarea>
+        </label>
+      </div>
+
+      <div class="composition-actions">
+        <span id="composition-status" class="composition-status" role="status" aria-live="polite">
+          {% if composition_active %}Dernière modification : {{ composition_active.date_mise_a_jour|date:"d/m/Y à H:i" }}{% else %}Votre composition n’est pas encore enregistrée.{% endif %}
+        </span>
+        <button id="composition-save" class="btn btn-primary" type="button">
+          <span aria-hidden="true">✓</span> Enregistrer la composition
+        </button>
+      </div>
+    </section>
+
+    <aside class="composition-aside">
+      <section class="composition-panel roster-panel">
+        <div class="composition-panel-head">
+          <div>
+            <p class="composition-kicker">Sélection</p>
+            <h2>Vos compositions</h2>
+          </div>
+          <span class="composition-count">{{ compositions|length }}</span>
+        </div>
+        {% if compositions %}
+          <div class="saved-compositions">
+            {% for compo in compositions %}
+              <a class="saved-composition {% if composition_active.pk == compo.pk %}is-active{% endif %}" href="{% url 'entraineur:composition_detail' compo.pk %}">
+                <span class="saved-formation">{{ compo.dispositif }}</span>
+                <span class="saved-details">
+                  <strong>{{ compo.nom }}</strong>
+                  <small>{{ compo.date_mise_a_jour|date:"d/m/Y à H:i" }}</small>
+                </span>
+                <span class="saved-arrow" aria-hidden="true">›</span>
+              </a>
+            {% endfor %}
+          </div>
+        {% else %}
+          <p class="roster-empty">Aucune feuille enregistrée pour le moment. Votre première composition apparaîtra ici.</p>
+        {% endif %}
+      </section>
+
+      <section class="composition-panel roster-panel">
+        <div class="composition-panel-head">
+          <div>
+            <p class="composition-kicker">Effectif</p>
+            <h2>Disponibilité</h2>
+          </div>
+        </div>
+        <div class="availability-list">
+          <span><i class="availability-dot is-available"></i> Disponible</span>
+          <span><i class="availability-dot is-injured"></i> Blessé ou dispensé</span>
+        </div>
+        <p class="roster-empty">Seuls les joueurs disponibles peuvent être placés sur la feuille de match.</p>
+      </section>
+    </aside>
+  </div>
+
+  <form hidden aria-hidden="true">{% csrf_token %}</form>
+  {% if composition_active %}
+    <dialog id="delete-composition-dialog" class="composition-dialog" aria-labelledby="delete-composition-title" aria-describedby="delete-composition-description">
+      <div class="confirmation-card">
+        <div class="confirmation-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none">
+            <path d="M4 7h16M9 7V4h6v3m3 0-.8 13H6.8L6 7m4 4v5m4-5v5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <p class="confirmation-kicker">Gestion de l’équipe · YALLA</p>
+        <h2 id="delete-composition-title">Supprimer cette composition ?</h2>
+        <p id="delete-composition-description" class="confirmation-description">
+          <strong>{{ composition_active.nom }}</strong> sera supprimée définitivement. Cette action ne peut pas être annulée.
+        </p>
+        <div class="confirmation-actions">
+          <button type="button" class="confirmation-cancel" data-cancel-delete>Annuler</button>
+          <button type="button" class="confirmation-submit" data-confirm-delete>Supprimer la composition</button>
+        </div>
+        <p class="confirmation-footnote"><span aria-hidden="true">●</span> Seul l’entraîneur principal peut effectuer cette action.</p>
+      </div>
+    </dialog>
+  {% endif %}
+  {{ donnees|json_script:"composition-data" }}
+</section>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'js/composition.js' %}?v=1.1" defer></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      if (!window.gsap || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      gsap.from(".composition-heading", { y: 16, autoAlpha: 0, duration: 0.45, ease: "power2.out" });
+      gsap.from(".composition-panel", { y: 14, autoAlpha: 0, duration: 0.4, stagger: 0.07, delay: 0.08, ease: "power2.out" });
+    });
+  </script>
+{% endblock %}

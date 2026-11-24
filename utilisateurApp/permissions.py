@@ -53,3 +53,19 @@ def gestion_entraineurs_required(vue):
             return redirect("entraineur:liste")
         return vue(request, *args, **kwargs)
     return verifie
+
+
+def composition_required(vue):
+    """Accès réservé à l'entraîneur principal de l'équipe (ou à la direction)."""
+    @login_required
+    @wraps(vue)
+    def verifie(request, *args, **kwargs):
+        from .roles import peut_gerer_composition
+        if not peut_gerer_composition(request.user):
+            messages.error(
+                request,
+                "L'accès à la composition tactique est réservé à l'entraîneur principal."
+            )
+            return redirect("joueurs:liste")
+        return vue(request, *args, **kwargs)
+    return verifie
