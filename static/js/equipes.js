@@ -1,10 +1,11 @@
 /* =========================================================
    YALLA • Modules Équipes & Présidents
    - Recherche dynamique en temps réel (par nom d'équipe ou président)
-   - Validation automatique et réactive à la saisie (disparition immédiate des erreurs)
+   - Modal de confirmation de suppression sur arrière-plan flou
+   - Validation automatique et réactive à la saisie
    - Données géographiques réelles (contrôle strict pays et villes du monde)
    - Gestion avancée des médias (logo et photo : aperçu, remplacement, suppression)
-   - Sélecteurs interactifs multi-choix (joueurs, staff, scouts)
+   - Sélecteurs multi-choix (dropdown staff/scouts, multi-picker joueurs/équipes)
    ========================================================= */
 
 (function () {
@@ -20,10 +21,25 @@
       .trim();
   }
 
-  function calculerAge(dateNaissance, dateRef) {
-    if (!dateNaissance) return 0;
-    var ref = dateRef ? new Date(dateRef) : new Date();
-    var naiss = new Date(dateNaissance);
+  function parseDateYMD(val) {
+    if (!val) return null;
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(val.trim());
+    if (!m) return null;
+    var y = parseInt(m[1], 10);
+    var mo = parseInt(m[2], 10);
+    var d = parseInt(m[3], 10);
+    var dt = new Date(y, mo - 1, d);
+    if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== d) {
+      return null;
+    }
+    return dt;
+  }
+
+  function calculerAge(dateNaissanceStr, dateRefStr) {
+    var naiss = parseDateYMD(dateNaissanceStr);
+    if (!naiss) return null;
+    var ref = dateRefStr ? parseDateYMD(dateRefStr) : new Date();
+    if (!ref) return null;
     var age = ref.getFullYear() - naiss.getFullYear();
     var m = ref.getMonth() - naiss.getMonth();
     if (m < 0 || (m === 0 && ref.getDate() < naiss.getDate())) {
@@ -33,19 +49,35 @@
   }
 
   // ───────────── Gestion des erreurs dans le DOM ─────────────
-  function setChampEtat(champ, valide, message) {
+  function setChampEtat(champ, valide, message, neutre) {
     if (!champ) return;
-    var conteneur = champ.closest(".input-wrap") || champ.parentElement;
+    var conteneur =
+      champ.closest(".phone-combo") ||
+      champ.closest(".eq-dropdown") ||
+      (champ.classList.contains("multi-picker") ? champ : null) ||
+      champ.closest(".input-wrap") ||
+      champ.parentElement;
     if (!conteneur) return;
 
     var parentGroupe = conteneur.parentElement;
-    var erreurEl = parentGroupe.querySelector(".form-error[data-for='" + champ.id + "']");
+    var targetId = champ.id || conteneur.id || "";
+    var erreurEl = targetId
+      ? parentGroupe.querySelector(".form-error[data-for='" + targetId + "']")
+      : null;
     if (!erreurEl) {
-      // Chercher un message d'erreur Django existant
       erreurEl = parentGroupe.querySelector(".form-error:not([data-for])");
-      if (erreurEl) {
-        erreurEl.setAttribute("data-for", champ.id);
+      if (erreurEl && targetId) {
+        erreurEl.setAttribute("data-for", targetId);
       }
+    }
+
+    if (neutre) {
+      champ.classList.remove("is-invalid", "is-valid");
+      if (erreurEl) {
+        erreurEl.textContent = "";
+        erreurEl.style.display = "none";
+      }
+      return;
     }
 
     if (valide) {
@@ -61,12 +93,66 @@
       if (!erreurEl) {
         erreurEl = document.createElement("span");
         erreurEl.className = "form-error";
-        erreurEl.setAttribute("data-for", champ.id);
+        if (targetId) erreurEl.setAttribute("data-for", targetId);
         conteneur.insertAdjacentElement("afterend", erreurEl);
       }
       erreurEl.textContent = message || "Ce champ est invalide.";
       erreurEl.style.display = "block";
     }
+  }
+
+  // ───────────── Modal de suppression avec arrière-plan flou ─────────────
+  function initDeleteModal() {
+    var modal = document.getElementById("eq-delete-modal");
+    var pageContent = document.getElementById("eq-page-content");
+    if (!modal || !pageContent) return;
+
+    var titleEl = document.getElementById("eq-delete-title");
+    var msgEl = document.getElementById("eq-delete-message");
+    var subEl = document.getElementById("eq-delete-sub");
+    var formEl = document.getElementById("eq-delete-form");
+
+    function fermerModal() {
+      modal.hidden = true;
+      pageContent.classList.remove("is-blurred");
+      document.body.style.overflow = "";
+    }
+
+    function ouvrirModal(trigger) {
+      if (titleEl && trigger.dataset.deleteTitle) {
+        titleEl.textContent = trigger.dataset.deleteTitle;
+      }
+      if (msgEl) {
+        msgEl.innerHTML = trigger.dataset.deleteMessage || "";
+      }
+      if (subEl) {
+        subEl.textContent = trigger.dataset.deleteSub || "";
+      }
+      if (formEl) {
+        formEl.setAttribute("action", trigger.dataset.deleteUrl || trigger.getAttribute("href"));
+      }
+      pageContent.classList.add("is-blurred");
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+
+    document.addEventListener("click", function (e) {
+      var trigger = e.target.closest("[data-delete-trigger]");
+      if (trigger) {
+        e.preventDefault();
+        ouvrirModal(trigger);
+        return;
+      }
+      if (e.target.closest("[data-delete-cancel]") || e.target === modal) {
+        fermerModal();
+      }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && !modal.hidden) {
+        fermerModal();
+      }
+    });
   }
 
   // ───────────── Recherche dynamique (Liste) ─────────────
@@ -87,9 +173,6 @@
           if (ticket !== requete) return;
           cible.innerHTML = html;
           if (pousser) history.replaceState(null, "", url);
-          if (window.gsap) {
-            gsap.from(cible.querySelectorAll(".coach-card"), { y: 14, opacity: 0, duration: 0.3, stagger: 0.03 });
-          }
         })
         .catch(function () { window.location.href = url; })
         .finally(function () { if (ticket === requete) cible.classList.remove("is-loading"); });
@@ -162,7 +245,6 @@
         preview.style.backgroundImage = "none";
         if (hiddenSupprimer) hiddenSupprimer.value = "true";
 
-        // Valider l'obligation du média
         var estCreation = preview.dataset.creation === "true";
         if (estCreation) {
           setChampEtat(fileInput, false, "L'image est obligatoire lors de la création.");
@@ -173,28 +255,101 @@
     }
   }
 
-  // ───────────── Multi-Pickers interactifs ─────────────
+  // ───────────── Dropdown Multi-Choix (Staff & Scouts) ─────────────
+  function initDropdownPickers() {
+    var dropdowns = document.querySelectorAll(".eq-dropdown");
+    if (!dropdowns.length) return;
+
+    function fermerTous(sauf) {
+      dropdowns.forEach(function (dd) {
+        if (dd !== sauf) {
+          var t = dd.querySelector(".eq-dropdown-trigger");
+          var m = dd.querySelector(".eq-dropdown-menu");
+          if (t) t.setAttribute("aria-expanded", "false");
+          if (m) m.hidden = true;
+        }
+      });
+    }
+
+    dropdowns.forEach(function (dd) {
+      var trigger = dd.querySelector(".eq-dropdown-trigger");
+      var menu = dd.querySelector(".eq-dropdown-menu");
+      var labelEl = dd.querySelector(".eq-dropdown-label");
+      var placeholder = dd.dataset.placeholder || "— Sélectionner —";
+      if (!trigger || !menu) return;
+
+      function majLabel() {
+        var checked = Array.prototype.slice.call(menu.querySelectorAll("input[type='checkbox']:checked"));
+        if (!labelEl) return;
+        if (checked.length === 0) {
+          labelEl.textContent = placeholder;
+          labelEl.classList.add("is-placeholder");
+        } else {
+          var noms = checked.map(function (cb) {
+            var sp = cb.parentElement.querySelector("span");
+            return sp ? sp.textContent.trim() : "";
+          }).filter(Boolean);
+          labelEl.textContent = noms.length <= 2
+            ? noms.join(", ")
+            : noms.slice(0, 2).join(", ") + " (+" + (noms.length - 2) + ")";
+          labelEl.classList.remove("is-placeholder");
+        }
+      }
+
+      trigger.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var ouvert = trigger.getAttribute("aria-expanded") === "true";
+        fermerTous(dd);
+        trigger.setAttribute("aria-expanded", ouvert ? "false" : "true");
+        menu.hidden = ouvert;
+      });
+
+      menu.addEventListener("change", function () {
+        majLabel();
+        dd.dispatchEvent(new CustomEvent("dropdown:change", { bubbles: true }));
+      });
+
+      majLabel();
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!e.target.closest(".eq-dropdown")) {
+        fermerTous(null);
+      }
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") fermerTous(null);
+    });
+  }
+
+  // ───────────── Multi-Pickers interactifs (Joueurs & Équipes) ─────────────
   function initMultiPickers() {
     document.querySelectorAll(".multi-picker").forEach(function (picker) {
       var searchInput = picker.querySelector(".multi-picker-search input");
       var items = picker.querySelectorAll(".multi-picker-item");
       var countEl = picker.querySelector(".multi-picker-count");
+      var isEquipePicker = picker.id === "picker-equipes";
 
       function updateCount() {
         var n = picker.querySelectorAll("input[type='checkbox']:checked").length;
         if (countEl) {
-          countEl.textContent = n + " sélectionné" + (n > 1 ? "s" : "");
+          if (isEquipePicker) {
+            countEl.textContent = n + " sélectionnée" + (n > 1 ? "s" : "");
+          } else {
+            countEl.textContent = n + " sélectionné" + (n > 1 ? "s" : "");
+          }
         }
       }
 
       items.forEach(function (item) {
         var cb = item.querySelector("input[type='checkbox']");
-        item.addEventListener("click", function (e) {
-          if (e.target !== cb) {
-            cb.checked = !cb.checked;
-          }
+        if (!cb) return;
+        cb.addEventListener("change", function () {
           item.classList.toggle("is-selected", cb.checked);
           updateCount();
+          picker.dispatchEvent(new CustomEvent("multipicker:change", { bubbles: true }));
         });
         if (cb.checked) {
           item.classList.add("is-selected");
@@ -220,17 +375,20 @@
     if (!form) return;
 
     var nom = document.getElementById("id_nom");
+    var niveau = document.getElementById("id_niveau");
     var pays = document.getElementById("id_pays");
     var ville = document.getElementById("id_ville");
     var dateCreation = document.getElementById("id_date_creation");
     var entraineur = document.getElementById("id_entraineur");
     var president = document.getElementById("id_president");
-    var siteWeb = document.getElementById("id_site_web");
     var description = document.getElementById("id_description");
     var logo = document.getElementById("id_logo");
     var preview = document.getElementById("top-media-preview");
     var charCount = document.getElementById("char-count");
     var villesDatalist = document.getElementById("villes_list");
+    var dropdownStaff = document.getElementById("dropdown-staff");
+    var dropdownScouts = document.getElementById("dropdown-scouts");
+    var pickerJoueurs = document.getElementById("picker-joueurs");
 
     var paysVillesData = window.PAYS_VILLES_DATA || {};
 
@@ -249,7 +407,22 @@
       setChampEtat(nom, true);
       return true;
     }
-    if (nom) nom.addEventListener("input", validerNom);
+    if (nom) {
+      nom.addEventListener("input", validerNom);
+      nom.addEventListener("blur", validerNom);
+    }
+
+    // Niveau
+    function validerNiveau() {
+      if (!niveau) return true;
+      if (!niveau.value) {
+        setChampEtat(niveau, false, "Veuillez choisir un niveau.");
+        return false;
+      }
+      setChampEtat(niveau, true);
+      return true;
+    }
+    if (niveau) niveau.addEventListener("change", validerNiveau);
 
     // 2. Pays & Villes réels
     function validerPays(silencieux) {
@@ -277,7 +450,6 @@
 
       setChampEtat(pays, true);
 
-      // Mettre à jour la liste des villes valides pour ce pays
       if (villesDatalist) {
         villesDatalist.innerHTML = "";
         var villes = paysVillesData[paysTrouve] || [];
@@ -288,7 +460,6 @@
         });
       }
 
-      // Re-valider la ville saisie si présente
       if (ville && ville.value.trim()) {
         validerVille();
       }
@@ -355,7 +526,11 @@
         setChampEtat(dateCreation, false, "La date de création est obligatoire.");
         return false;
       }
-      var d = new Date(val);
+      var d = parseDateYMD(val);
+      if (!d) {
+        setChampEtat(dateCreation, false, "Date de création invalide.");
+        return false;
+      }
       var aujourdhui = new Date();
       aujourdhui.setHours(23, 59, 59, 999);
       if (d > aujourdhui) {
@@ -372,6 +547,7 @@
     if (dateCreation) {
       dateCreation.addEventListener("input", validerDateCreation);
       dateCreation.addEventListener("change", validerDateCreation);
+      dateCreation.addEventListener("blur", validerDateCreation);
     }
 
     // 4. Entraîneur (obligatoire)
@@ -384,9 +560,7 @@
       setChampEtat(entraineur, true);
       return true;
     }
-    if (entraineur) {
-      entraineur.addEventListener("change", validerEntraineur);
-    }
+    if (entraineur) entraineur.addEventListener("change", validerEntraineur);
 
     // 5. Président (obligatoire)
     function validerPresident() {
@@ -398,26 +572,47 @@
       setChampEtat(president, true);
       return true;
     }
-    if (president) {
-      president.addEventListener("change", validerPresident);
-    }
+    if (president) president.addEventListener("change", validerPresident);
 
-    // 6. Site web
-    function validerSiteWeb() {
-      if (!siteWeb) return true;
-      var val = siteWeb.value.trim();
-      if (val && !val.match(/^https?:\/\/.+/i)) {
-        setChampEtat(siteWeb, false, "L'URL du site doit débuter par http:// ou https://");
+    // 6. Staff & Scouts (au moins 1 chacun)
+    function validerDropdown(dd, message) {
+      if (!dd) return true;
+      var trigger = dd.querySelector(".eq-dropdown-trigger");
+      var nb = dd.querySelectorAll("input[type='checkbox']:checked").length;
+      if (nb < 1) {
+        setChampEtat(trigger, false, message);
         return false;
       }
-      setChampEtat(siteWeb, true);
+      setChampEtat(trigger, true);
       return true;
     }
-    if (siteWeb) {
-      siteWeb.addEventListener("input", validerSiteWeb);
+    if (dropdownStaff) {
+      dropdownStaff.addEventListener("dropdown:change", function () {
+        validerDropdown(dropdownStaff, "Veuillez sélectionner au moins un membre du staff technique.");
+      });
+    }
+    if (dropdownScouts) {
+      dropdownScouts.addEventListener("dropdown:change", function () {
+        validerDropdown(dropdownScouts, "Veuillez sélectionner au moins un scout.");
+      });
     }
 
-    // 7. Description et compteur
+    // 7. Joueurs (au moins 1)
+    function validerJoueurs() {
+      if (!pickerJoueurs) return true;
+      var nb = pickerJoueurs.querySelectorAll("input[type='checkbox']:checked").length;
+      if (nb < 1) {
+        setChampEtat(pickerJoueurs, false, "Veuillez sélectionner au moins un joueur pour l'équipe.");
+        return false;
+      }
+      setChampEtat(pickerJoueurs, true);
+      return true;
+    }
+    if (pickerJoueurs) {
+      pickerJoueurs.addEventListener("multipicker:change", validerJoueurs);
+    }
+
+    // 8. Description et compteur
     function validerDescription() {
       if (!description) return true;
       var len = description.value.length;
@@ -426,7 +621,7 @@
         setChampEtat(description, false, "La description ne peut pas dépasser 500 caractères.");
         return false;
       }
-      setChampEtat(description, true);
+      setChampEtat(description, true, "", len === 0);
       return true;
     }
     if (description) {
@@ -434,7 +629,7 @@
       validerDescription();
     }
 
-    // 8. Logo obligatoire
+    // 9. Logo obligatoire
     function validerLogo() {
       if (!logo) return true;
       var estCreation = preview && preview.dataset.creation === "true";
@@ -455,21 +650,24 @@
     // Soumission du formulaire
     form.addEventListener("submit", function (e) {
       var v1 = validerNom();
-      var v2 = validerPays();
-      var v3 = validerVille();
-      var v4 = validerDateCreation();
-      var v5 = validerEntraineur();
-      var v6 = validerPresident();
-      var v7 = validerLogo();
-      var v8 = validerSiteWeb();
-      var v9 = validerDescription();
+      var v2 = validerNiveau();
+      var v3 = validerPays(false);
+      var v4 = validerVille();
+      var v5 = validerDateCreation();
+      var v6 = validerEntraineur();
+      var v7 = validerPresident();
+      var v8 = validerDropdown(dropdownStaff, "Veuillez sélectionner au moins un membre du staff technique.");
+      var v9 = validerDropdown(dropdownScouts, "Veuillez sélectionner au moins un scout.");
+      var v10 = validerJoueurs();
+      var v11 = validerLogo();
+      var v12 = validerDescription();
 
-      if (!(v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9)) {
+      if (!(v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9 && v10 && v11 && v12)) {
         e.preventDefault();
         var premierInvalide = form.querySelector(".is-invalid");
         if (premierInvalide) {
           premierInvalide.scrollIntoView({ behavior: "smooth", block: "center" });
-          premierInvalide.focus();
+          if (typeof premierInvalide.focus === "function") premierInvalide.focus();
         }
       }
     });
@@ -483,7 +681,9 @@
     var nom = document.getElementById("id_nom");
     var prenom = document.getElementById("id_prenom");
     var email = document.getElementById("id_email");
-    var telephone = document.getElementById("id_telephone");
+    var indicatif = document.getElementById("id_indicatif");
+    var telNum = document.getElementById("id_telephone_numero");
+    var telCache = document.getElementById("id_telephone");
     var nationalite = document.getElementById("id_nationalite");
     var dateNaissance = document.getElementById("id_date_naissance");
     var dateDebut = document.getElementById("id_date_debut_presidence");
@@ -491,10 +691,10 @@
     var pwd2 = document.getElementById("id_password2");
     var photo = document.getElementById("id_photo");
     var preview = document.getElementById("top-media-preview");
-    var jauge = document.getElementById("pwd-strength");
-    var txtForce = document.getElementById("pwd-strength-txt");
 
     var nationalitesSuggestions = window.NATIONALITES_DATA || [];
+    var estCreation = preview && preview.dataset.creation === "true";
+    var pwd2Touche = false;
 
     // 1. Nom & Prénom
     function validerIdentite(champ, libelle) {
@@ -511,8 +711,14 @@
       setChampEtat(champ, true);
       return true;
     }
-    if (nom) nom.addEventListener("input", function () { validerIdentite(nom, "nom"); });
-    if (prenom) prenom.addEventListener("input", function () { validerIdentite(prenom, "prénom"); });
+    if (nom) {
+      nom.addEventListener("input", function () { validerIdentite(nom, "nom"); });
+      nom.addEventListener("blur", function () { validerIdentite(nom, "nom"); });
+    }
+    if (prenom) {
+      prenom.addEventListener("input", function () { validerIdentite(prenom, "prénom"); });
+      prenom.addEventListener("blur", function () { validerIdentite(prenom, "prénom"); });
+    }
 
     // 2. E-mail
     function validerEmail() {
@@ -529,25 +735,47 @@
       setChampEtat(email, true);
       return true;
     }
-    if (email) email.addEventListener("input", validerEmail);
+    if (email) {
+      email.addEventListener("input", validerEmail);
+      email.addEventListener("blur", validerEmail);
+    }
 
-    // 3. Téléphone (+216 par défaut, modifiable, accepte l'international)
-    function validerTelephone() {
-      if (!telephone) return true;
-      var v = telephone.value.trim();
-      if (!v) {
-        setChampEtat(telephone, true);
+    // 3. Téléphone (sélecteur indicatif avec triangle ▼ + numéro local)
+    function syncEtValiderTelephone() {
+      if (!telNum) return true;
+      var code = indicatif ? (indicatif.value || "+216").trim() : "+216";
+      var local = telNum.value.trim();
+
+      if (!local) {
+        if (telCache) telCache.value = "";
+        setChampEtat(telNum, true, "", true);
         return true;
       }
-      var chiffres = v.replace(/[\s().-]/g, "");
-      if (!chiffres.match(/^\+?\d{8,15}$/)) {
-        setChampEtat(telephone, false, "Numéro invalide (ex: +216 20 123 456 ou +33 6 12 34 56 78).");
+
+      var propre = local.replace(/[\s().-]/g, "");
+      var complet = propre;
+      if (propre.indexOf("00") === 0) {
+        complet = "+" + propre.slice(2);
+      } else if (propre.charAt(0) !== "+") {
+        complet = code + propre;
+      }
+
+      if (telCache) telCache.value = complet;
+
+      if (!complet.match(/^\+\d{8,15}$/) || complet.length - code.length < 6) {
+        setChampEtat(telNum, false, "Numéro invalide pour l'indicatif " + code + " (ex : 20 123 456).");
         return false;
       }
-      setChampEtat(telephone, true);
+      setChampEtat(telNum, true);
       return true;
     }
-    if (telephone) telephone.addEventListener("input", validerTelephone);
+    if (telNum) {
+      telNum.addEventListener("input", syncEtValiderTelephone);
+      telNum.addEventListener("blur", syncEtValiderTelephone);
+    }
+    if (indicatif) {
+      indicatif.addEventListener("change", syncEtValiderTelephone);
+    }
 
     // 4. Nationalité réelle du monde
     function validerNationalite() {
@@ -575,45 +803,66 @@
     if (nationalite) {
       nationalite.addEventListener("input", validerNationalite);
       nationalite.addEventListener("change", validerNationalite);
+      nationalite.addEventListener("blur", validerNationalite);
     }
 
-    // 5. Date de naissance (18 ans minimum, erreur SOUS le champ)
-    function validerDateNaissance() {
+    // 5. Date de naissance (contrainte >= 18 ans stricte)
+    function validerDateNaissance(exigerNonVide) {
       if (!dateNaissance) return true;
       var val = dateNaissance.value;
       if (!val) {
-        setChampEtat(dateNaissance, false, "La date de naissance est obligatoire.");
+        if (exigerNonVide) {
+          setChampEtat(dateNaissance, false, "La date de naissance est obligatoire.");
+          return false;
+        }
+        return true;
+      }
+      var d = parseDateYMD(val);
+      if (!d) {
+        setChampEtat(dateNaissance, false, "Date de naissance invalide.");
         return false;
       }
-      var d = new Date(val);
       var aujourdhui = new Date();
+      aujourdhui.setHours(23, 59, 59, 999);
       if (d > aujourdhui) {
         setChampEtat(dateNaissance, false, "La date de naissance ne peut pas être dans le futur.");
         return false;
       }
+      if (d.getFullYear() < 1900) {
+        setChampEtat(dateNaissance, false, "La date de naissance est invalide (avant 1900).");
+        return false;
+      }
       var age = calculerAge(val);
-      if (age < 18) {
-        setChampEtat(dateNaissance, false, "Le président doit avoir au moins 18 ans (âge actuel : " + age + " an" + (age > 1 ? "s" : "") + ").");
+      if (age === null || age < 18) {
+        setChampEtat(dateNaissance, false, "Le président doit avoir au moins 18 ans (âge actuel : " + (age || 0) + " an" + (age > 1 ? "s" : "") + ").");
         return false;
       }
       setChampEtat(dateNaissance, true);
-      if (dateDebut && dateDebut.value) validerDateDebut();
+      if (dateDebut && dateDebut.value) validerDateDebut(false);
       return true;
     }
     if (dateNaissance) {
-      dateNaissance.addEventListener("input", validerDateNaissance);
-      dateNaissance.addEventListener("change", validerDateNaissance);
+      dateNaissance.addEventListener("input", function () { validerDateNaissance(false); });
+      dateNaissance.addEventListener("change", function () { validerDateNaissance(true); });
+      dateNaissance.addEventListener("blur", function () { validerDateNaissance(true); });
     }
 
     // 6. Date de début de présidence
-    function validerDateDebut() {
+    function validerDateDebut(exigerNonVide) {
       if (!dateDebut) return true;
       var val = dateDebut.value;
       if (!val) {
-        setChampEtat(dateDebut, false, "La date de début de présidence est obligatoire.");
+        if (exigerNonVide) {
+          setChampEtat(dateDebut, false, "La date de début de présidence est obligatoire.");
+          return false;
+        }
+        return true;
+      }
+      var d = parseDateYMD(val);
+      if (!d) {
+        setChampEtat(dateDebut, false, "Date de début de présidence invalide.");
         return false;
       }
-      var d = new Date(val);
       var aujourdhui = new Date();
       aujourdhui.setHours(23, 59, 59, 999);
       if (d > aujourdhui) {
@@ -622,7 +871,7 @@
       }
       if (dateNaissance && dateNaissance.value) {
         var ageAuDebut = calculerAge(dateNaissance.value, val);
-        if (ageAuDebut < 18) {
+        if (ageAuDebut !== null && ageAuDebut < 18) {
           setChampEtat(dateDebut, false, "Le président devait avoir au moins 18 ans au début de sa présidence.");
           return false;
         }
@@ -631,14 +880,14 @@
       return true;
     }
     if (dateDebut) {
-      dateDebut.addEventListener("input", validerDateDebut);
-      dateDebut.addEventListener("change", validerDateDebut);
+      dateDebut.addEventListener("input", function () { validerDateDebut(false); });
+      dateDebut.addEventListener("change", function () { validerDateDebut(true); });
+      dateDebut.addEventListener("blur", function () { validerDateDebut(true); });
     }
 
     // 7. Photo obligatoire
     function validerPhoto() {
       if (!photo) return true;
-      var estCreation = preview && preview.dataset.creation === "true";
       var aFichier = photo.files && photo.files.length > 0;
       var aImageDeja = preview && preview.style.backgroundImage && preview.style.backgroundImage !== "none";
       if (estCreation && !aFichier) {
@@ -653,74 +902,99 @@
       return true;
     }
 
-    // 8. Mots de passe
-    function validerMotsDePasse() {
-      if (!pwd1) return true;
-      var estCreation = preview && preview.dataset.creation === "true";
-      var p1 = pwd1.value;
-      var p2 = pwd2 ? pwd2.value : "";
-
-      if (estCreation && !p1) {
-        setChampEtat(pwd1, false, "Le mot de passe est obligatoire.");
-        return false;
-      }
-
-      if (p1) {
-        var niveau = 0;
-        if (p1.length >= 8) niveau++;
-        if (/[A-Z]/.test(p1)) niveau++;
-        if (/\d/.test(p1)) niveau++;
-        if (/[^A-Za-z0-9\s]/.test(p1)) niveau++;
-
-        if (jauge) {
-          jauge.hidden = false;
-          jauge.dataset.level = niveau;
-          var noms = ["", "Faible", "Moyen", "Bon", "Excellent"];
-          if (txtForce) txtForce.textContent = noms[niveau] || "Trop court";
-        }
-
-        if (niveau < 4) {
-          setChampEtat(pwd1, false, "Requis : 8 caractères min, 1 majuscule, 1 chiffre, 1 caractère spécial.");
-          return false;
-        }
-        setChampEtat(pwd1, true);
-
-        if (pwd2) {
-          if (p1 !== p2) {
-            setChampEtat(pwd2, false, "Les mots de passe ne correspondent pas.");
-            return false;
-          }
-          setChampEtat(pwd2, true);
-        }
-      } else {
-        if (jauge) jauge.hidden = true;
-        setChampEtat(pwd1, true);
-        if (pwd2) setChampEtat(pwd2, true);
-      }
-      return true;
+    // 8. Mots de passe : validation directe automatique sans faux messages
+    function motDePasseValide(p) {
+      return p.length >= 8 && /[A-Z]/.test(p) && /\d/.test(p) && /[^A-Za-z0-9\s]/.test(p);
     }
 
-    if (pwd1) pwd1.addEventListener("input", validerMotsDePasse);
-    if (pwd2) pwd2.addEventListener("input", validerMotsDePasse);
+    function validerMotsDePasse(surSoumission) {
+      if (!pwd1) return true;
+      var p1 = pwd1.value;
+      var p2 = pwd2 ? pwd2.value : "";
+      var ok1 = true;
+      var ok2 = true;
+
+      if (estCreation && !p1) {
+        if (surSoumission || p2.length > 0 || pwd2Touche) {
+          setChampEtat(pwd1, false, "Le mot de passe est obligatoire.");
+          ok1 = false;
+        } else {
+          setChampEtat(pwd1, true, "", true);
+          ok1 = false;
+        }
+      } else if (p1) {
+        if (!motDePasseValide(p1)) {
+          setChampEtat(pwd1, false, "Requis : 8 caractères min, 1 majuscule, 1 chiffre, 1 caractère spécial.");
+          ok1 = false;
+        } else {
+          setChampEtat(pwd1, true);
+        }
+      } else {
+        setChampEtat(pwd1, true, "", true);
+      }
+
+      if (pwd2) {
+        var doitValiderP2 = surSoumission || pwd2Touche || p2.length > 0;
+        if (doitValiderP2) {
+          if ((estCreation || p1.length > 0) && !p2) {
+            setChampEtat(pwd2, false, "Veuillez confirmer le mot de passe.");
+            ok2 = false;
+          } else if (p1 !== p2) {
+            setChampEtat(pwd2, false, "Les mots de passe ne correspondent pas.");
+            ok2 = false;
+          } else if (p1 && p1 === p2) {
+            setChampEtat(pwd2, true);
+          } else {
+            setChampEtat(pwd2, true, "", true);
+          }
+        } else {
+          setChampEtat(pwd2, true, "", true);
+        }
+      }
+
+      return ok1 && ok2;
+    }
+
+    if (pwd1) {
+      pwd1.addEventListener("input", function () { validerMotsDePasse(false); });
+      pwd1.addEventListener("blur", function () {
+        if (estCreation && !pwd1.value) {
+          setChampEtat(pwd1, false, "Le mot de passe est obligatoire.");
+        } else {
+          validerMotsDePasse(false);
+        }
+      });
+    }
+    if (pwd2) {
+      pwd2.addEventListener("input", function () {
+        pwd2Touche = true;
+        validerMotsDePasse(false);
+      });
+      pwd2.addEventListener("blur", function () {
+        pwd2Touche = true;
+        validerMotsDePasse(false);
+      });
+    }
 
     // Soumission du formulaire
     form.addEventListener("submit", function (e) {
+      pwd2Touche = true;
       var v1 = validerIdentite(nom, "nom");
       var v2 = validerIdentite(prenom, "prénom");
       var v3 = validerEmail();
-      var v4 = validerTelephone();
+      var v4 = syncEtValiderTelephone();
       var v5 = validerNationalite();
-      var v6 = validerDateNaissance();
-      var v7 = validerDateDebut();
+      var v6 = validerDateNaissance(true);
+      var v7 = validerDateDebut(true);
       var v8 = validerPhoto();
-      var v9 = validerMotsDePasse();
+      var v9 = validerMotsDePasse(true);
 
       if (!(v1 && v2 && v3 && v4 && v5 && v6 && v7 && v8 && v9)) {
         e.preventDefault();
         var premierInvalide = form.querySelector(".is-invalid");
         if (premierInvalide) {
           premierInvalide.scrollIntoView({ behavior: "smooth", block: "center" });
-          premierInvalide.focus();
+          if (typeof premierInvalide.focus === "function") premierInvalide.focus();
         }
       }
     });
@@ -739,8 +1013,10 @@
 
   // ───────────── Initialisation au chargement ─────────────
   document.addEventListener("DOMContentLoaded", function () {
+    initDeleteModal();
     initRecherche();
     initTopMediaUploader();
+    initDropdownPickers();
     initMultiPickers();
     initValidationEquipe();
     initValidationPresident();

@@ -6,7 +6,7 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
-  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.1">
 {% endblock %}
 
 {% block content %}
@@ -41,23 +41,15 @@
             </div>
 
             <dl class="fiche-meta-list">
+              <div class="fiche-meta-row"><dt>Nom de l'équipe</dt><dd>{{ equipe.nom }}</dd></div>
+              <div class="fiche-meta-row"><dt>Niveau</dt><dd>{{ equipe.niveau|default:"Non renseigné" }}</dd></div>
               <div class="fiche-meta-row"><dt>Pays</dt><dd>{{ equipe.pays|default:"Non renseigné" }}</dd></div>
               <div class="fiche-meta-row"><dt>Ville</dt><dd>{{ equipe.ville }}</dd></div>
-              <div class="fiche-meta-row"><dt>Niveau</dt><dd>{{ equipe.niveau|default:"Non renseigné" }}</dd></div>
-              <div class="fiche-meta-row">
-                <dt>Site web</dt>
-                <dd>
-                  {% if equipe.site_web %}
-                    <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" style="color: var(--coach-green); font-weight: 700;">{{ equipe.site_web }}</a>
-                  {% else %}
-                    <span style="color: var(--muted);">Non renseigné</span>
-                  {% endif %}
-                </dd>
-              </div>
+              <div class="fiche-meta-row"><dt>Date de création</dt><dd>{{ equipe.date_creation|date:"d/m/Y"|default:"Non renseignée" }}</dd></div>
               <div class="fiche-meta-row" style="flex-direction: column; align-items: flex-start; gap: 4px;">
                 <dt>Description</dt>
                 <dd style="text-align: left; font-weight: 400; color: var(--text-2); font-size: 13.5px; line-height: 1.5;">
-                  {{ equipe.description|default:"Aucune description."|linebreaksbr }}
+                  {{ equipe.description|default:"Aucune description renseignée."|linebreaksbr }}
                 </dd>
               </div>
             </dl>
@@ -70,19 +62,16 @@
                 {% icon "users" %} <span>Composition</span>
               </h2>
               <span style="font-size: 12.5px; font-weight: 700; color: var(--coach-green);">
-                {{ equipe.joueurs.count }} joueur{{ equipe.joueurs.count|pluralize }}
+                Total : {{ equipe.joueurs.count }} joueur{{ equipe.joueurs.count|pluralize }}
               </span>
             </div>
 
             <div class="fiche-members-list">
-              {# Président #}
+              {# Président (lecture seule, sans bouton Fiche) #}
               <div class="fiche-member-card">
                 <div class="fiche-member-info">
                   <small>{% icon "award" %} Président</small>
                   <strong>{% if equipe.president %}{{ equipe.president.nom_complet }}{% else %}Non assigné{% endif %}</strong>
-                  {% if equipe.president and equipe.president.adresse %}
-                    <span class="fiche-member-address">{% icon "map-pin" %} {{ equipe.president.adresse }}</span>
-                  {% endif %}
                 </div>
               </div>
 
@@ -91,48 +80,61 @@
                 <div class="fiche-member-info">
                   <small>{% icon "clipboard" %} Entraîneur</small>
                   <strong>{% if equipe.entraineur %}{{ equipe.entraineur.prenom }} {{ equipe.entraineur.nom }}{% else %}Non assigné{% endif %}</strong>
-                  {% if equipe.entraineur and equipe.entraineur.adresse %}
-                    <span class="fiche-member-address">{% icon "map-pin" %} {{ equipe.entraineur.adresse }}</span>
-                  {% endif %}
-                </div>
-              </div>
-
-              {# Staff #}
-              <div class="fiche-member-card">
-                <div class="fiche-member-info">
-                  <small>{% icon "briefcase" %} Staff technique</small>
-                  <strong>
-                    {% for s in equipe.staff.all %}
-                      {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
-                    {% empty %}
-                      Aucun
-                    {% endfor %}
-                  </strong>
                 </div>
               </div>
 
               {# Scouts #}
               <div class="fiche-member-card">
                 <div class="fiche-member-info">
-                  <small>{% icon "binoculars" %} Scouts</small>
+                  <small>{% icon "binoculars" %} Scouts ({{ equipe.scouts.count }})</small>
                   <strong>
                     {% for s in equipe.scouts.all %}
-                      {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
+                      {{ s.prenom }} {{ s.nom }}{% if not forloop.last %}, {% endif %}
                     {% empty %}
-                      Aucun
+                      Aucun scout affecté
                     {% endfor %}
                   </strong>
                 </div>
               </div>
 
-              {# Nombre total de joueurs et bouton vers la fiche #}
-              <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 13px; font-weight: 700; color: var(--text);">
-                  Effectif total : <strong>{{ equipe.joueurs.count }} joueur(s)</strong>
-                </span>
-                <a class="btn btn-primary magnetic" href="{% url 'equipes:detail' equipe.pk %}" style="padding: 6px 16px; font-size: 13px;">
-                  {% icon "shield" %} <span>Voir la fiche complète</span>
-                </a>
+              {# Staff #}
+              <div class="fiche-member-card">
+                <div class="fiche-member-info">
+                  <small>{% icon "briefcase" %} Staff technique ({{ equipe.staff.count }})</small>
+                  <strong>
+                    {% for s in equipe.staff.all %}
+                      {{ s.prenom }} {{ s.nom }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                      Aucun membre de staff affecté
+                    {% endfor %}
+                  </strong>
+                </div>
+              </div>
+
+              {# Effectif complet des joueurs #}
+              <div style="margin-top: 10px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                  <small style="font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px;">Effectif des joueurs ({{ equipe.joueurs.count }})</small>
+                </div>
+                {% if equipe.joueurs_tries %}
+                  <div style="display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; padding-right: 4px;">
+                    {% for j in equipe.joueurs_tries %}
+                      <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 8px;">
+                        <div>
+                          <strong style="font-size: 13.5px; color: var(--text);">
+                            {% if j.numero_maillot %}#{{ j.numero_maillot }} · {% endif %}{{ j.prenom }} {{ j.nom }}
+                          </strong>
+                          <small style="display: block; color: var(--muted); font-size: 11.5px;">{{ j.get_poste_display }}</small>
+                        </div>
+                        <span class="coach-badge-type" style="font-size: 10.5px;">{{ j.get_statut_display }}</span>
+                      </div>
+                    {% endfor %}
+                  </div>
+                {% else %}
+                  <div style="text-align: center; padding: 20px; background: var(--surface-2); border: 1px dashed var(--line-2); border-radius: 10px;">
+                    <p style="color: var(--muted); font-size: 13px; margin: 0;">Aucun joueur affecté à cette équipe.</p>
+                  </div>
+                {% endif %}
               </div>
             </div>
           </div>

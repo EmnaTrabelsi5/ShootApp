@@ -9,7 +9,6 @@ class President(Utilisateur):
     # nom, prenom, email, mot de passe (hashé), telephone, photo, date_naissance
     # et « actif » (is_active) viennent de Utilisateur.
     nationalite = models.CharField(max_length=60, blank=True)
-    adresse = models.CharField(max_length=255, blank=True, verbose_name="Adresse")
     date_debut_presidence = models.DateField(null=True, blank=True)
     # Champ technique : « nom prénom » sans accents ni majuscules (recherche dynamique)
     nom_recherche = models.CharField(max_length=70, editable=False, default="", db_index=True)

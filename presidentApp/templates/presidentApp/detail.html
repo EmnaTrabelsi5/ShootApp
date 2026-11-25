@@ -6,13 +6,13 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
-  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.1">
 {% endblock %}
 
 {% block content %}
 <div style="margin-bottom: 20px;">
-  <a href="{% url 'presidents:liste' %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
-    {% icon "arrow-left" %} <span>Retour aux présidents</span>
+  <a href="{{ retour_url }}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+    {% icon "arrow-left" %} <span>{{ retour_label }}</span>
   </a>
 </div>
 
@@ -47,10 +47,6 @@
         <dd>{{ president.prenom }}</dd>
       </div>
       <div class="fiche-meta-row">
-        <dt>Adresse</dt>
-        <dd>{{ president.adresse|default:"Non renseignée" }}</dd>
-      </div>
-      <div class="fiche-meta-row">
         <dt>Téléphone</dt>
         <dd>{{ president.telephone|default:"Non renseigné" }}</dd>
       </div>
@@ -66,7 +62,6 @@
         <dt>Date de naissance</dt>
         <dd>{{ president.date_naissance|date:"d/m/Y"|default:"Non renseignée" }}</dd>
       </div>
-      {# Remplacement de « Président depuis: Non renseigné » et « Inscrit le: 23/11/2026 » par date réelle et durée calculée #}
       <div class="fiche-meta-row">
         <dt>Date de début de présidence</dt>
         <dd>{{ president.date_debut_presidence|date:"d/m/Y"|default:"Non renseignée" }}</dd>
@@ -107,7 +102,7 @@
               <span class="coach-badge-type" style="font-size: 12px; padding: 4px 10px;">
                 {% icon "users" %} {{ e.nb_joueurs }} joueur{{ e.nb_joueurs|pluralize }}
               </span>
-              <a href="{% url 'equipes:detail' e.pk %}" class="btn btn-ghost" style="padding: 6px 12px; font-size: 12px;">
+              <a href="{% url 'equipes:detail' e.pk %}?retour={{ request.path|urlencode }}" class="btn btn-ghost" style="padding: 6px 12px; font-size: 12px;">
                 {% icon "shield" %} <span>Fiche</span>
               </a>
             </div>
@@ -123,7 +118,6 @@
 </div>
 
 {# =================== ACTIONS EN BAS DE FICHE =================== #}
-{# Conserver UNIQUEMENT le bouton Modifier (sans bouton Supprimer) #}
 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
   <a href="{% url 'presidents:modifier' president.pk %}" class="btn btn-primary magnetic" style="padding: 12px 28px; font-size: 15px;">
     {% icon "pencil" %} <span>Modifier le président</span>

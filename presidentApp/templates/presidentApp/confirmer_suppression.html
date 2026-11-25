@@ -4,38 +4,85 @@
 {% block title %}Supprimer {{ president.prenom }} {{ president.nom }} • YALLA{% endblock %}
 {% block nav_presidents %}active{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.1">
+{% endblock %}
+
 {% block content %}
-<div class="dialog-wrap" style="position: relative; min-height: 480px; display: grid; place-items: center;">
-  <div class="dialog" style="background: var(--surface); border: 1px solid rgba(244,63,94,.35); box-shadow: 0 20px 50px -15px rgba(244,63,94,.25);">
+<div class="eq-page-content is-blurred" aria-hidden="true">
+  <section class="hero" id="hero-presidents">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="live-dot"></span>Administration · Saison {{ saison }}</p>
+      <h1 class="hero-title" data-split>Les présidents<br><span class="hero-title-2">des équipes</span></h1>
+      <p class="hero-sub">Gestion des comptes présidentiels et des équipes dirigées au sein du club.</p>
+      <div class="hero-actions">
+        <span class="btn btn-primary"><span class="btn-ic">{% icon "plus" %}</span><span>Ajouter un président</span></span>
+      </div>
+    </div>
+
+    <aside class="hero-kpis" aria-label="Statistiques des présidents">
+      <div class="kpi-card">
+        <span class="kpi-label">Présidents</span>
+        <b class="kpi-num">{{ stats.total }}</b>
+        <small class="kpi-sub">enregistrés</small>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Actifs</span>
+        <b class="kpi-num">{{ stats.actifs }}</b>
+        <small class="kpi-sub">comptes actifs</small>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Libres</span>
+        <b class="kpi-num">{{ stats.sans_equipe }}</b>
+        <small class="kpi-sub">sans équipe</small>
+      </div>
+    </aside>
+  </section>
+
+  <section class="coach-toolbar" aria-label="Recherche président">
+    <div class="eq-filters-simple">
+      <div class="coach-search-box">
+        {% icon "search" %}
+        <input type="text" value="{{ q }}" placeholder="Rechercher par nom ou prénom…" tabindex="-1" readonly>
+      </div>
+    </div>
+  </section>
+
+  <section class="cards-view" id="presidents-resultats">
+    {% include "presidentApp/_grille.html" %}
+  </section>
+</div>
+
+<div class="dialog-wrap eq-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="delete-president-title">
+  <div class="dialog eq-delete-dialog">
     <div class="dialog-ic" style="background: rgba(244,63,94,.12); color: var(--red);">{% icon "trash" %}</div>
 
-    <h1 style="font-family: var(--display); font-weight: 800; font-size: 28px; text-transform: uppercase; line-height: 1.1; margin-bottom: 10px;">Supprimer le président ?</h1>
+    <h1 id="delete-president-title" style="font-family: var(--display); font-weight: 800; font-size: 28px; text-transform: uppercase; line-height: 1.1; margin-bottom: 10px;">Supprimer le président ?</h1>
 
     <p style="color: var(--text-2); font-size: 14.5px; margin-bottom: 8px;">
       Êtes-vous certain de vouloir supprimer <strong>{{ president.prenom }} {{ president.nom }}</strong> ?
     </p>
 
     {% if equipes %}
-      <p style="color: var(--red); font-size: 13.5px; font-weight: 600; margin-bottom: 8px;">
-        Suppression impossible : il préside encore {{ equipes|length }} équipe{{ equipes|length|pluralize }}
+      <p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">
+        Il préside actuellement <strong>{{ equipes|length }} équipe{{ equipes|length|pluralize }}</strong>
         ({% for e in equipes %}{{ e.nom }}{% if not forloop.last %}, {% endif %}{% endfor %}).
+        Ces équipes ne seront pas supprimées : elles resteront simplement sans président.
       </p>
-      <p style="color: var(--muted); font-size: 13px; margin-bottom: 24px;">Réassignez d'abord ces équipes à un autre président (ou supprimez-les).</p>
-      <div class="dialog-actions" style="display: flex; gap: 12px; justify-content: center;">
-        <a href="{% url 'presidents:detail' president.pk %}" class="btn btn-ghost">Retour à la fiche</a>
-      </div>
-    {% else %}
-      <p style="color: var(--muted); font-size: 13px; margin-bottom: 24px;">
-        Cette action supprimera définitivement son compte de connexion (<strong>{{ president.email }}</strong>).
-      </p>
-      <form method="post" action="{% url 'presidents:supprimer' president.pk %}">
-        {% csrf_token %}
-        <div class="dialog-actions" style="display: flex; gap: 12px; justify-content: center;">
-          <a href="{% url 'presidents:detail' president.pk %}" class="btn btn-ghost">Annuler</a>
-          <button type="submit" class="btn btn-primary" style="background: var(--red); border-color: var(--red);">{% icon "trash" %}<span>Confirmer la suppression</span></button>
-        </div>
-      </form>
     {% endif %}
+
+    <p style="color: var(--muted); font-size: 13px; margin-bottom: 24px;">
+      Cette action supprimera définitivement son compte de connexion (<strong>{{ president.email }}</strong>).
+    </p>
+
+    <form method="post" action="{% url 'presidents:supprimer' president.pk %}">
+      {% csrf_token %}
+      <div class="dialog-actions" style="display: flex; gap: 12px; justify-content: center;">
+        <a href="{% url 'presidents:liste' %}" class="btn btn-ghost">Annuler</a>
+        <button type="submit" class="btn btn-primary" style="background: var(--red); border-color: var(--red);">{% icon "trash" %}<span>Confirmer la suppression</span></button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}
@@ -43,7 +90,7 @@
 {% block extra_js %}
 <script>
   document.addEventListener("DOMContentLoaded", () => {
-    if (window.gsap) gsap.from(".dialog", { scale: 0.92, opacity: 0, duration: 0.35, ease: "back.out(1.5)" });
+    if (window.gsap) gsap.from(".dialog", { scale: 0.92, opacity: 0, duration: 0.25, ease: "back.out(1.4)" });
   });
 </script>
 {% endblock %}

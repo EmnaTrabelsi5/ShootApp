@@ -8,6 +8,53 @@ import unicodedata
 from datetime import date, datetime
 
 from django.core.exceptions import ValidationError
+from django.db import connection
+from django.db.models import Max
+
+INDICATIFS_TELEPHONIQUES = [
+    ("+216", "Tunisie (+216)"),
+    ("+33", "France (+33)"),
+    ("+213", "Algérie (+213)"),
+    ("+212", "Maroc (+212)"),
+    ("+218", "Libye (+218)"),
+    ("+20", "Égypte (+20)"),
+    ("+39", "Italie (+39)"),
+    ("+34", "Espagne (+34)"),
+    ("+49", "Allemagne (+49)"),
+    ("+44", "Royaume-Uni (+44)"),
+    ("+32", "Belgique (+32)"),
+    ("+41", "Suisse (+41)"),
+    ("+351", "Portugal (+351)"),
+    ("+31", "Pays-Bas (+31)"),
+    ("+90", "Turquie (+90)"),
+    ("+966", "Arabie saoudite (+966)"),
+    ("+974", "Qatar (+974)"),
+    ("+971", "Émirats arabes unis (+971)"),
+    ("+1", "États-Unis / Canada (+1)"),
+    ("+221", "Sénégal (+221)"),
+    ("+225", "Côte d'Ivoire (+225)"),
+    ("+237", "Cameroun (+237)"),
+    ("+234", "Nigéria (+234)"),
+    ("+27", "Afrique du Sud (+27)"),
+    ("+55", "Brésil (+55)"),
+    ("+54", "Argentine (+54)"),
+]
+
+
+def prochain_id_modele(model_cls):
+    """Calcule le prochain ID qui sera attribué automatiquement par la base."""
+    max_pk = model_cls.objects.aggregate(max_id=Max("id"))["max_id"] or 0
+    seq = 0
+    try:
+        table = model_cls._meta.db_table
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT seq FROM sqlite_sequence WHERE name = %s", [table])
+            row = cursor.fetchone()
+            if row and row[0]:
+                seq = int(row[0])
+    except Exception:
+        seq = 0
+    return max(max_pk, seq) + 1
 
 
 # ─────────────────────────── Données Géographiques Réelles ───────────────────────────
@@ -324,29 +371,65 @@ def erreurs_image(fichier, taille_max_mo=2):
     return erreurs
 
 
-def telephone_international(valeur, region="TN"):
+def telephone_international(valeur, region="TN", indicatif="+216"):
     """Normalise un numéro au format international (+216…).
-    Si aucun indicatif n'est renseigné, le numéro est considéré comme tunisien (+216).
+    Si aucun indicatif n'est renseigné, utilise l'indicatif fourni (+216 par défaut).
     L'indicatif est modifiable et les numéros étrangers avec leur propre indicatif sont acceptés.
     """
     valeur = (valeur or "").strip()
     if not valeur:
         return ""
-    # Si aucun indicatif (+ ou 00), considérer comme tunisien (+216)
+    indicatif = (indicatif or "+216").strip()
+    if not indicatif.startswith("+"):
+        indicatif = "+" + re.sub(r"\D", "", indicatif)
+    if indicatif == "+":
+        indicatif = "+216"
+
     chiffres_propres = re.sub(r"[\s().-]", "", valeur)
-    if not chiffres_propres.startswith("+"):
-        if chiffres_propres.startswith("00"):
-            valeur = "+" + chiffres_propres[2:]
-        else:
-            valeur = "+216" + chiffres_propres
+    if chiffres_propres.startswith("+"):
+        valeur_complete = chiffres_propres
+    elif chiffres_propres.startswith("00"):
+        valeur_complete = "+" + chiffres_propres[2:]
+    else:
+        valeur_complete = indicatif + chiffres_propres
+
     try:
         import phonenumbers
-        num = phonenumbers.parse(valeur, None)
+        num = phonenumbers.parse(valeur_complete, None)
         if not phonenumbers.is_valid_number(num):
             raise ValidationError("Numéro de téléphone invalide.")
         return phonenumbers.format_number(num, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+    except ValidationError:
+        raise
     except Exception:
-        chiffres = re.sub(r"[\s().-]", "", valeur)
-        if not re.fullmatch(r"\+\d{8,15}", chiffres):
-            raise ValidationError("Numéro de téléphone invalide (ex : +216 20 123 456 ou +33 6 12 34 56 78).")
-        return chiffres
+        if not re.fullmatch(r"\+\d{8,15}", valeur_complete):
+            raise ValidationError("Numéro de téléphone invalide (ex : 20 123 456 ou +33 6 12 34 56 78).")
+        # Formatage lisible si indicatif connu
+        for code, _ in sorted(INDICATIFS_TELEPHONIQUES, key=lambda x: -len(x[0])):
+            if valeur_complete.startswith(code):
+                reste = valeur_complete[len(code):]
+                if len(reste) < 6:
+                    raise ValidationError("Le numéro de téléphone est trop court.")
+                if code == "+216" and len(reste) == 8:
+                    return f"+216 {reste[:2]} {reste[2:5]} {reste[5:]}"
+                groupes = " ".join(reste[i:i + 2] for i in range(0, len(reste), 2))
+                return f"{code} {groupes}"
+        return valeur_complete
+
+
+def separer_telephone(valeur):
+    """Sépare un numéro international en (indicatif, numero_local) pour le formulaire."""
+    valeur = (valeur or "").strip()
+    if not valeur:
+        return "+216", ""
+    chiffres = re.sub(r"[\s().-]", "", valeur)
+    if chiffres.startswith("00"):
+        chiffres = "+" + chiffres[2:]
+    if chiffres.startswith("+"):
+        for code, _ in sorted(INDICATIFS_TELEPHONIQUES, key=lambda x: -len(x[0])):
+            if chiffres.startswith(code):
+                reste = chiffres[len(code):]
+                if code == "+216" and len(reste) == 8:
+                    return code, f"{reste[:2]} {reste[2:5]} {reste[5:]}"
+                return code, reste
+    return "+216", valeur

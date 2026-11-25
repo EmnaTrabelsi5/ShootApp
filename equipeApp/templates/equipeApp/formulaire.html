@@ -6,7 +6,7 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
-  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.1">
 {% endblock %}
 
 {% block content %}
@@ -46,7 +46,7 @@
     {% csrf_token %}
     {{ form.supprimer_logo }}
 
-    {# =================== 1. LOGO DE L'ÉQUIPE (DÉPLACÉ TOUT EN HAUT) =================== #}
+    {# =================== LOGO DE L'ÉQUIPE (TOUT EN HAUT) =================== #}
     <div class="top-media-uploader">
       <div class="top-media-preview-wrap">
         <div class="top-media-preview" id="top-media-preview" data-creation="{% if mode == 'creer' %}true{% else %}false{% endif %}" {% if equipe and equipe.logo %}style="background-image: url('{{ equipe.logo.url }}');"{% endif %}>
@@ -71,7 +71,7 @@
       </div>
     </div>
 
-    {# =================== IDENTITÉ & COORDONNÉES =================== #}
+    {# =================== 1. INFORMATIONS DE L'ÉQUIPE =================== #}
     <h2 class="form-section-title">1. Informations de l'équipe</h2>
     <div class="field-group">
       <div>
@@ -105,16 +105,11 @@
       </div>
     </div>
 
-    <div class="field-group">
+    <div class="field-group full-width">
       <div>
         <label class="form-label" for="{{ form.date_creation.id_for_label }}">Date de création <span class="req">*</span></label>
         <div class="input-wrap">{% icon "calendar" %}{{ form.date_creation }}</div>
         {% if form.date_creation.errors %}<span class="form-error" data-for="{{ form.date_creation.id_for_label }}">{{ form.date_creation.errors.0 }}</span>{% endif %}
-      </div>
-      <div>
-        <label class="form-label" for="{{ form.site_web.id_for_label }}">Site web</label>
-        <div class="input-wrap">{% icon "globe" %}{{ form.site_web }}</div>
-        {% if form.site_web.errors %}<span class="form-error" data-for="{{ form.site_web.id_for_label }}">{{ form.site_web.errors.0 }}</span>{% endif %}
       </div>
     </div>
 
@@ -126,98 +121,93 @@
       </div>
     </div>
 
-    {# =================== CADRE 1 : ENCADREMENT TECHNIQUE =================== #}
-    <h2 class="form-section-title">2. Encadrement de l'équipe (Président, Entraîneur, Staff, Scouts)</h2>
+    {# =================== 2. ENCADREMENT DE L'ÉQUIPE =================== #}
+    <h2 class="form-section-title">2. Encadrement de l'équipe</h2>
     <div class="field-group">
       <div>
         <label class="form-label" for="{{ form.president.id_for_label }}">Président de l'équipe <span class="req">*</span></label>
         <div class="input-wrap">{% icon "award" %}{{ form.president }}</div>
-        <span class="form-help">Pas encore de président ? <a href="{% url 'presidents:creer' %}" target="_blank" style="color: var(--coach-green); font-weight: 700;">Ajouter un président</a>.</span>
+        <span class="form-help">Pas encore de président ? <a href="{% url 'presidents:creer' %}?retour={{ request.path|urlencode }}" style="color: var(--coach-green); font-weight: 700;">Ajouter un président</a>.</span>
         {% if form.president.errors %}<span class="form-error" data-for="{{ form.president.id_for_label }}">{{ form.president.errors.0 }}</span>{% endif %}
       </div>
       <div>
-        <label class="form-label" for="{{ form.entraineur.id_for_label }}">Entraîneur principal <span class="req">* (Obligatoire)</span></label>
+        <label class="form-label" for="{{ form.entraineur.id_for_label }}">Entraîneur</label>
         <div class="input-wrap">{% icon "clipboard" %}{{ form.entraineur }}</div>
         <span class="form-help">Une équipe doit obligatoirement avoir un entraîneur.</span>
         {% if form.entraineur.errors %}<span class="form-error" data-for="{{ form.entraineur.id_for_label }}">{{ form.entraineur.errors.0 }}</span>{% endif %}
       </div>
     </div>
 
-    {# Staff Technique (Sélecteur intuitif sans Ctrl+Clic) #}
-    <div style="margin-top: 14px;">
-      <label class="form-label">Staff technique de l'équipe <span style="font-weight: 400; color: var(--muted);">(cliquer pour cocher/décocher)</span></label>
-      <div class="multi-picker" id="picker-staff">
-        <div class="multi-picker-head">
-          <div class="multi-picker-search">
-            {% icon "search" %}
-            <input type="text" placeholder="Filtrer les membres du staff…">
+    {# Staff & Scouts : même style de sélection que Président et Entraîneur (sans filtrage) #}
+    <div class="field-group">
+      <div>
+        <label class="form-label" for="dropdown-btn-staff">Staff technique <span class="req">*</span></label>
+        <div class="eq-dropdown" id="dropdown-staff" data-field="staff" data-placeholder="— Sélectionner le staff —">
+          <div class="input-wrap">
+            {% icon "briefcase" %}
+            <button type="button" class="eq-dropdown-trigger" id="dropdown-btn-staff" aria-expanded="false" aria-haspopup="listbox">
+              <span class="eq-dropdown-label">— Sélectionner le staff —</span>
+              <span class="eq-dropdown-caret" aria-hidden="true">▼</span>
+            </button>
           </div>
-          <span class="multi-picker-count">0 sélectionné</span>
+          <div class="eq-dropdown-menu" role="listbox" aria-multiselectable="true" hidden>
+            {% for s in form.staff.field.queryset %}
+              <label class="eq-dropdown-item">
+                <input type="checkbox" name="staff" value="{{ s.pk }}" {% if s.pk|stringformat:"s" in form.staff_selectionnes %}checked{% endif %}>
+                <span>{{ s.prenom }} {{ s.nom }}</span>
+              </label>
+            {% empty %}
+              <p class="eq-dropdown-empty">Aucun membre de staff disponible.</p>
+            {% endfor %}
+          </div>
         </div>
-        <div class="multi-picker-grid">
-          {% for s in form.staff.field.queryset %}
-            <label class="multi-picker-item" data-name="{{ s.prenom }} {{ s.nom }}">
-              <input type="checkbox" name="staff" value="{{ s.pk }}" {% if s.pk in form.staff.value %}checked{% endif %}>
-              <div class="multi-picker-info">
-                <span class="multi-picker-name">{{ s.prenom }} {{ s.nom }}</span>
-                <small class="multi-picker-sub">Staff technique{% if s.adresse %} · {{ s.adresse }}{% endif %}</small>
-              </div>
-            </label>
-          {% empty %}
-            <p style="grid-column: 1 / -1; color: var(--muted); font-size: 13px; margin: 8px 0;">Aucun membre de staff disponible.</p>
-          {% endfor %}
-        </div>
+        {% if form.staff.errors %}<span class="form-error" data-for="dropdown-btn-staff">{{ form.staff.errors.0 }}</span>{% endif %}
       </div>
-      {% if form.staff.errors %}<span class="form-error">{{ form.staff.errors.0 }}</span>{% endif %}
+
+      <div>
+        <label class="form-label" for="dropdown-btn-scouts">Scouts <span class="req">*</span></label>
+        <div class="eq-dropdown" id="dropdown-scouts" data-field="scouts" data-placeholder="— Sélectionner les scouts —">
+          <div class="input-wrap">
+            {% icon "binoculars" %}
+            <button type="button" class="eq-dropdown-trigger" id="dropdown-btn-scouts" aria-expanded="false" aria-haspopup="listbox">
+              <span class="eq-dropdown-label">— Sélectionner les scouts —</span>
+              <span class="eq-dropdown-caret" aria-hidden="true">▼</span>
+            </button>
+          </div>
+          <div class="eq-dropdown-menu" role="listbox" aria-multiselectable="true" hidden>
+            {% for sc in form.scouts.field.queryset %}
+              <label class="eq-dropdown-item">
+                <input type="checkbox" name="scouts" value="{{ sc.pk }}" {% if sc.pk|stringformat:"s" in form.scouts_selectionnes %}checked{% endif %}>
+                <span>{{ sc.prenom }} {{ sc.nom }}</span>
+              </label>
+            {% empty %}
+              <p class="eq-dropdown-empty">Aucun scout disponible.</p>
+            {% endfor %}
+          </div>
+        </div>
+        {% if form.scouts.errors %}<span class="form-error" data-for="dropdown-btn-scouts">{{ form.scouts.errors.0 }}</span>{% endif %}
+      </div>
     </div>
 
-    {# Scouts (Sélecteur intuitif sans Ctrl+Clic) #}
-    <div style="margin-top: 14px;">
-      <label class="form-label">Scouts associés <span style="font-weight: 400; color: var(--muted);">(cliquer pour cocher/décocher)</span></label>
-      <div class="multi-picker" id="picker-scouts">
-        <div class="multi-picker-head">
-          <div class="multi-picker-search">
-            {% icon "search" %}
-            <input type="text" placeholder="Filtrer les scouts…">
-          </div>
-          <span class="multi-picker-count">0 sélectionné</span>
-        </div>
-        <div class="multi-picker-grid">
-          {% for sc in form.scouts.field.queryset %}
-            <label class="multi-picker-item" data-name="{{ sc.prenom }} {{ sc.nom }}">
-              <input type="checkbox" name="scouts" value="{{ sc.pk }}" {% if sc.pk in form.scouts.value %}checked{% endif %}>
-              <div class="multi-picker-info">
-                <span class="multi-picker-name">{{ sc.prenom }} {{ sc.nom }}</span>
-                <small class="multi-picker-sub">Scout{% if sc.adresse %} · {{ sc.adresse }}{% endif %}</small>
-              </div>
-            </label>
-          {% empty %}
-            <p style="grid-column: 1 / -1; color: var(--muted); font-size: 13px; margin: 8px 0;">Aucun scout disponible.</p>
-          {% endfor %}
-        </div>
-      </div>
-      {% if form.scouts.errors %}<span class="form-error">{{ form.scouts.errors.0 }}</span>{% endif %}
-    </div>
-
-    {# =================== CADRE 2 : JOUEURS AFFECTÉS =================== #}
+    {# =================== 3. EFFECTIF DES JOUEURS =================== #}
     <h2 class="form-section-title" style="margin-top: 32px;">3. Effectif des Joueurs (Affectation multiple)</h2>
     <div>
-      <label class="form-label">Joueurs de l'équipe <span style="font-weight: 400; color: var(--muted);">(cocher les joueurs à affecter à cette équipe)</span></label>
-      <div class="multi-picker" id="picker-joueurs">
+      <label class="form-label">Joueurs de l'équipe <span class="req">*</span> <span style="font-weight: 400; color: var(--muted);">(cocher au moins un joueur à affecter à cette équipe)</span></label>
+      <div class="multi-picker" id="picker-joueurs" data-required="true">
         <div class="multi-picker-head">
           <div class="multi-picker-search">
             {% icon "search" %}
             <input type="text" placeholder="Rechercher un joueur par nom ou poste…">
           </div>
-          <span class="multi-picker-count">0 joueur sélectionné</span>
+          <span class="multi-picker-count">0 sélectionné</span>
         </div>
         <div class="multi-picker-grid">
           {% for j in form.joueurs.field.queryset %}
             <label class="multi-picker-item" data-name="{{ j.prenom }} {{ j.nom }} {{ j.get_poste_display }}">
-              <input type="checkbox" name="joueurs" value="{{ j.pk }}" {% if j.pk in form.joueurs.value %}checked{% endif %}>
+              <input type="checkbox" name="joueurs" value="{{ j.pk }}" {% if j.pk|stringformat:"s" in form.joueurs_selectionnes %}checked{% endif %}>
               <div class="multi-picker-info">
                 <span class="multi-picker-name">{% if j.numero_maillot %}#{{ j.numero_maillot }} · {% endif %}{{ j.prenom }} {{ j.nom }}</span>
-                <small class="multi-picker-sub">{{ j.get_poste_display }} · {{ j.get_statut_display }}{% if j.adresse %} · {{ j.adresse }}{% endif %}</small>
+                <small class="multi-picker-sub">{{ j.get_poste_display }} · {{ j.get_statut_display }}{% if j.equipe %} · {{ j.equipe.nom }}{% endif %}</small>
               </div>
             </label>
           {% empty %}
@@ -225,7 +215,7 @@
           {% endfor %}
         </div>
       </div>
-      {% if form.joueurs.errors %}<span class="form-error">{{ form.joueurs.errors.0 }}</span>{% endif %}
+      {% if form.joueurs.errors %}<span class="form-error" data-for="picker-joueurs">{{ form.joueurs.errors.0 }}</span>{% endif %}
     </div>
 
     <div class="form-actions-bar" style="margin-top: 36px;">
@@ -243,7 +233,7 @@
 <script>
   window.PAYS_VILLES_DATA = {{ pays_villes_json|safe }};
 </script>
-<script src="{% static 'js/equipes.js' %}?v=2.0" defer></script>
+<script src="{% static 'js/equipes.js' %}?v=2.1" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     if (window.gsap) gsap.from(".form-card", { y: 20, opacity: 0, duration: 0.45, ease: "power2.out" });

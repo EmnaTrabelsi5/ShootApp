@@ -6,14 +6,14 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
-  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.1">
 {% endblock %}
 
 {% block content %}
 <div style="max-width: 860px; margin: 0 auto 20px;">
-  <a href="{% if mode == 'editer' %}{% url 'presidents:detail' president.pk %}{% else %}{% url 'presidents:liste' %}{% endif %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+  <a href="{% if mode == 'editer' %}{% url 'presidents:detail' president.pk %}{% elif retour_url %}{{ retour_url }}{% else %}{% url 'presidents:liste' %}{% endif %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
     {% icon "arrow-left" %}
-    <span>{% if mode == 'editer' %}Retour à la fiche{% else %}Retour aux présidents{% endif %}</span>
+    <span>{% if mode == 'editer' %}Retour à la fiche{% else %}{{ retour_label|default:"Retour aux présidents" }}{% endif %}</span>
   </a>
 </div>
 
@@ -24,9 +24,16 @@
       {% if mode == "creer" %}Ajouter un président{% else %}Modifier {{ president.prenom }} {{ president.nom }}{% endif %}
     </h1>
     <p style="color: var(--muted); font-size: 15px; margin-top: 6px;">
-      {% if mode == "creer" %}Création du compte et profil du président avec ses coordonnées et ses accès.{% else %}Mise à jour des informations personnelles et des accès du président.{% endif %}
+      {% if mode == "creer" %}Création du compte et profil du président avec ses coordonnées, ses accès et ses équipes.{% else %}Mise à jour des informations personnelles, des accès et des équipes du président.{% endif %}
     </p>
   </header>
+
+  {# Consultation automatique de l'ID du président (même principe et affichage que ID Équipe) #}
+  <div class="eq-id-badge">
+    <span class="eq-id-label">ID Président</span>
+    <span class="eq-id-val">#{{ id_president|default:prochain_id }}</span>
+    <small class="eq-id-sub">{% if mode == "creer" %}(Attribution automatique){% else %}(Identifiant unique){% endif %}</small>
+  </div>
 
   {% if form.non_field_errors %}
     <div class="form-alert" style="margin-bottom: 20px;">
@@ -37,9 +44,11 @@
 
   <form method="post" enctype="multipart/form-data" novalidate id="president-form">
     {% csrf_token %}
+    {% if retour_param %}<input type="hidden" name="retour" value="{{ retour_param }}">{% endif %}
     {{ form.supprimer_photo }}
+    {{ form.telephone }}
 
-    {# =================== PHOTO DU PRÉSIDENT (DÉPLACÉE TOUT EN HAUT) =================== #}
+    {# =================== PHOTO DU PRÉSIDENT (TOUT EN HAUT) =================== #}
     <div class="top-media-uploader">
       <div class="top-media-preview-wrap">
         <div class="top-media-preview is-round" id="top-media-preview" data-creation="{% if mode == 'creer' %}true{% else %}false{% endif %}" {% if president and president.photo %}style="background-image: url('{{ president.photo.url }}');"{% endif %}>
@@ -80,14 +89,6 @@
       </div>
     </div>
 
-    <div class="field-group full-width">
-      <div>
-        <label class="form-label" for="{{ form.adresse.id_for_label }}">Adresse</label>
-        <div class="input-wrap">{% icon "map-pin" %}{{ form.adresse }}</div>
-        {% if form.adresse.errors %}<span class="form-error" data-for="{{ form.adresse.id_for_label }}">{{ form.adresse.errors.0 }}</span>{% endif %}
-      </div>
-    </div>
-
     <div class="field-group">
       <div>
         <label class="form-label" for="{{ form.email.id_for_label }}">Adresse e-mail (identifiant de connexion) <span class="req">*</span></label>
@@ -95,10 +96,21 @@
         {% if form.email.errors %}<span class="form-error" data-for="{{ form.email.id_for_label }}">{{ form.email.errors.0 }}</span>{% endif %}
       </div>
       <div>
-        <label class="form-label" for="{{ form.telephone.id_for_label }}">Téléphone</label>
-        <div class="input-wrap">{% icon "phone" %}{{ form.telephone }}</div>
-        <span class="form-help">Indicatif par défaut : +216 (modifiable pour un numéro étranger).</span>
-        {% if form.telephone.errors %}<span class="form-error" data-for="{{ form.telephone.id_for_label }}">{{ form.telephone.errors.0 }}</span>{% endif %}
+        <label class="form-label" for="{{ form.telephone_numero.id_for_label }}">Téléphone</label>
+        <div class="phone-combo">
+          <div class="phone-code-wrap">
+            {{ form.indicatif }}
+            <span class="phone-triangle" aria-hidden="true">▼</span>
+          </div>
+          <div class="input-wrap phone-num-wrap">
+            {% icon "phone" %}{{ form.telephone_numero }}
+          </div>
+        </div>
+        {% if form.telephone_numero.errors %}
+          <span class="form-error" data-for="{{ form.telephone_numero.id_for_label }}">{{ form.telephone_numero.errors.0 }}</span>
+        {% elif form.telephone.errors %}
+          <span class="form-error" data-for="{{ form.telephone_numero.id_for_label }}">{{ form.telephone.errors.0 }}</span>
+        {% endif %}
       </div>
     </div>
 
@@ -113,9 +125,8 @@
         {% if form.nationalite.errors %}<span class="form-error" data-for="{{ form.nationalite.id_for_label }}">{{ form.nationalite.errors.0 }}</span>{% endif %}
       </div>
       <div>
-        <label class="form-label" for="{{ form.date_naissance.id_for_label }}">Date de naissance <span class="req">*</span> <small style="font-weight: 500; color: var(--muted);">(18 ans minimum)</small></label>
+        <label class="form-label" for="{{ form.date_naissance.id_for_label }}">Date de naissance <span class="req">*</span></label>
         <div class="input-wrap">{% icon "calendar" %}{{ form.date_naissance }}</div>
-        {# Message d'erreur STRICTEMENT SOUS LE CHAMP #}
         {% if form.date_naissance.errors %}<span class="form-error" data-for="{{ form.date_naissance.id_for_label }}">{{ form.date_naissance.errors.0 }}</span>{% endif %}
       </div>
     </div>
@@ -123,7 +134,7 @@
     {# Date de début de présidence (intégrée dans la Section 1) #}
     <div class="field-group full-width">
       <div>
-        <label class="form-label" for="{{ form.date_debut_presidence.id_for_label }}">Date de début de présidence <span class="req">* (Obligatoire)</span></label>
+        <label class="form-label" for="{{ form.date_debut_presidence.id_for_label }}">Date de début de présidence <span class="req">*</span></label>
         <div class="input-wrap">{% icon "calendar" %}{{ form.date_debut_presidence }}</div>
         <span class="form-help">La durée de présidence sera calculée automatiquement à partir de cette date.</span>
         {% if form.date_debut_presidence.errors %}<span class="form-error" data-for="{{ form.date_debut_presidence.id_for_label }}">{{ form.date_debut_presidence.errors.0 }}</span>{% endif %}
@@ -140,8 +151,9 @@
           {% icon "lock" %}{{ form.password1 }}
           <button type="button" class="eye-btn" data-toggle="id_password1" aria-label="Afficher le mot de passe" title="Afficher/masquer">{% icon "eye" %}</button>
         </div>
-        <div class="eq-strength" id="pwd-strength" hidden><i></i><i></i><i></i><i></i><span id="pwd-strength-txt"></span></div>
-        <span class="form-help">{{ form.password1.help_text }}</span>
+        {% if mode == "editer" and form.password1.help_text %}
+          <span class="form-help">{{ form.password1.help_text }}</span>
+        {% endif %}
         {% if form.password1.errors %}<span class="form-error" data-for="id_password1">{{ form.password1.errors.0 }}</span>{% endif %}
       </div>
       <div>
@@ -154,8 +166,40 @@
       </div>
     </div>
 
+    {# =================== SECTION 3 : ÉQUIPES DIRIGÉES (FILTRAGE) =================== #}
+    <h2 class="form-section-title" style="margin-top: 32px;">3. Équipes dirigées</h2>
+    <div>
+      <label class="form-label">Équipes associées à ce président <span style="font-weight: 400; color: var(--muted);">(filtrer et cocher les équipes dirigées)</span></label>
+      <div class="multi-picker" id="picker-equipes">
+        <div class="multi-picker-head">
+          <div class="multi-picker-search">
+            {% icon "search" %}
+            <input type="text" placeholder="Filtrer les équipes par nom ou ville…">
+          </div>
+          <span class="multi-picker-count">0 sélectionnée</span>
+        </div>
+        <div class="multi-picker-grid">
+          {% for eq in form.equipes.field.queryset %}
+            <label class="multi-picker-item" data-name="{{ eq.nom }} {{ eq.ville }} {{ eq.pays }}">
+              <input type="checkbox" name="equipes" value="{{ eq.pk }}" {% if eq.pk|stringformat:"s" in form.equipes_selectionnees %}checked{% endif %}>
+              <div class="multi-picker-info">
+                <span class="multi-picker-name">{{ eq.nom }}</span>
+                <small class="multi-picker-sub">
+                  {{ eq.ville }}{% if eq.pays %} · {{ eq.pays }}{% endif %}
+                  {% if eq.president %} · Actuel : {{ eq.president.nom_complet }}{% else %} · Sans président{% endif %}
+                </small>
+              </div>
+            </label>
+          {% empty %}
+            <p style="grid-column: 1 / -1; color: var(--muted); font-size: 13px; margin: 8px 0;">Aucune équipe enregistrée.</p>
+          {% endfor %}
+        </div>
+      </div>
+      {% if form.equipes.errors %}<span class="form-error" data-for="picker-equipes">{{ form.equipes.errors.0 }}</span>{% endif %}
+    </div>
+
     <div class="form-actions-bar" style="margin-top: 36px;">
-      <a href="{% if mode == 'editer' %}{% url 'presidents:detail' president.pk %}{% else %}{% url 'presidents:liste' %}{% endif %}" class="btn btn-ghost">Annuler</a>
+      <a href="{% if mode == 'editer' %}{% url 'presidents:detail' president.pk %}{% elif retour_url %}{{ retour_url }}{% else %}{% url 'presidents:liste' %}{% endif %}" class="btn btn-ghost">Annuler</a>
       <button type="submit" class="btn btn-primary magnetic">
         {% icon "check" %}
         <span>{% if mode == "creer" %}Créer le président{% else %}Enregistrer les modifications{% endif %}</span>
@@ -171,7 +215,7 @@
     {% for n in nationalites %}"{{ n }}"{% if not forloop.last %},{% endif %}{% endfor %}
   ];
 </script>
-<script src="{% static 'js/equipes.js' %}?v=2.0" defer></script>
+<script src="{% static 'js/equipes.js' %}?v=2.1" defer></script>
 <script>
   document.addEventListener("DOMContentLoaded", () => {
     if (window.gsap) gsap.from(".form-card", { y: 20, opacity: 0, duration: 0.45, ease: "power2.out" });

@@ -7,14 +7,14 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
-  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.1">
 {% endblock %}
 
 {% block content %}
 {% if peut_gerer %}
 <div style="margin-bottom: 20px;">
-  <a href="{% url 'equipes:liste' %}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
-    {% icon "arrow-left" %} <span>Retour aux équipes</span>
+  <a href="{{ retour_url }}" class="btn btn-ghost" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px;">
+    {% icon "arrow-left" %} <span>{{ retour_label }}</span>
   </a>
 </div>
 {% endif %}
@@ -61,18 +61,6 @@
         <dt>Date de création</dt>
         <dd>{{ equipe.date_creation|date:"d/m/Y"|default:"Non renseignée" }}</dd>
       </div>
-      <div class="fiche-meta-row">
-        <dt>Site web</dt>
-        <dd>
-          {% if equipe.site_web %}
-            <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" style="color: var(--coach-green); font-weight: 700; text-decoration: underline;">
-              {{ equipe.site_web }}
-            </a>
-          {% else %}
-            <span style="color: var(--muted); font-weight: 500;">Non renseigné</span>
-          {% endif %}
-        </dd>
-      </div>
       <div class="fiche-meta-row" style="flex-direction: column; align-items: flex-start; gap: 6px;">
         <dt>Description</dt>
         <dd style="text-align: left; font-weight: 400; color: var(--text-2); font-size: 14px; line-height: 1.6;">
@@ -99,33 +87,27 @@
         <div class="fiche-member-info">
           <small>{% icon "award" %} Président</small>
           <strong>{% if president %}{{ president.nom_complet }}{% else %}Non assigné{% endif %}</strong>
-          {% if president and president.adresse %}
-            <span class="fiche-member-address">{% icon "map-pin" %} {{ president.adresse }}</span>
-          {% endif %}
         </div>
-        {% if president %}
-          <a href="{% url 'presidents:detail' president.pk %}" class="btn btn-ghost" style="font-size: 11px; padding: 4px 10px;">Fiche</a>
+        {% if peut_gerer and president %}
+          <a href="{% url 'presidents:detail' president.pk %}?retour={{ request.path|urlencode }}" class="btn btn-ghost" style="font-size: 11px; padding: 4px 10px;">Fiche</a>
         {% endif %}
       </div>
 
       {# Entraîneur #}
       <div class="fiche-member-card">
         <div class="fiche-member-info">
-          <small>{% icon "clipboard" %} Entraîneur principal</small>
-          <strong>{% if entraineur %}{{ entraineur.prenom }} {{ entraineur.nom }} ({{ entraineur.get_type_display|default:"Principal" }}){% else %}Non assigné{% endif %}</strong>
-          {% if entraineur and entraineur.adresse %}
-            <span class="fiche-member-address">{% icon "map-pin" %} {{ entraineur.adresse }}</span>
-          {% endif %}
+          <small>{% icon "clipboard" %} Entraîneur</small>
+          <strong>{% if entraineur %}{{ entraineur.prenom }} {{ entraineur.nom }}{% else %}Non assigné{% endif %}</strong>
         </div>
       </div>
 
-      {# Scout #}
+      {# Scouts #}
       <div class="fiche-member-card">
         <div class="fiche-member-info">
           <small>{% icon "binoculars" %} Scouts ({{ scouts_membres|length }})</small>
           <strong>
             {% for s in scouts_membres %}
-              {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
+              {{ s.prenom }} {{ s.nom }}{% if not forloop.last %}, {% endif %}
             {% empty %}
               Aucun scout affecté
             {% endfor %}
@@ -139,7 +121,7 @@
           <small>{% icon "briefcase" %} Staff technique ({{ staff_membres|length }})</small>
           <strong>
             {% for s in staff_membres %}
-              {{ s.prenom }} {{ s.nom }}{% if s.adresse %} ({{ s.adresse }}){% endif %}{% if not forloop.last %}, {% endif %}
+              {{ s.prenom }} {{ s.nom }}{% if not forloop.last %}, {% endif %}
             {% empty %}
               Aucun membre de staff affecté
             {% endfor %}
@@ -161,9 +143,6 @@
                   {% if j.numero_maillot %}#{{ j.numero_maillot }} · {% endif %}{{ j.prenom }} {{ j.nom }}
                 </strong>
                 <small style="display: block; color: var(--muted); font-size: 11.5px;">{{ j.get_poste_display }}</small>
-                {% if j.adresse %}
-                  <span class="fiche-member-address">{% icon "map-pin" %} {{ j.adresse }}</span>
-                {% endif %}
               </div>
               <span class="coach-badge-type" style="font-size: 10.5px;">{{ j.get_statut_display }}</span>
             </div>
@@ -180,7 +159,6 @@
 </div>
 
 {# =================== ACTIONS EN BAS DE FICHE =================== #}
-{# Conserver UNIQUEMENT le bouton Modifier (sans bouton Supprimer) #}
 {% if peut_gerer %}
 <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
   <a href="{% url 'equipes:modifier' equipe.pk %}" class="btn btn-primary magnetic" style="padding: 12px 28px; font-size: 15px;">

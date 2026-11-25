@@ -6,67 +6,81 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'css/entraineurs.css' %}?v=2.0">
-  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.0">
+  <link rel="stylesheet" href="{% static 'css/equipes.css' %}?v=2.1">
 {% endblock %}
 
 {% block content %}
-{# =================== HERO & STATISTIQUES (STYLE MATCHS) =================== #}
-<section class="hero" id="hero-presidents">
-  <div class="hero-copy">
-    <p class="eyebrow"><span class="live-dot"></span>Administration · Saison {{ saison }}</p>
-    <h1 class="hero-title" data-split>Les présidents<br><span class="hero-title-2">des équipes</span></h1>
-    <p class="hero-sub">Gestion des comptes présidentiels et des équipes dirigées au sein du club.</p>
-    <div class="hero-actions">
-      <a class="btn btn-primary magnetic" href="{% url 'presidents:creer' %}">
-        <span class="btn-ic">{% icon "plus" %}</span><span>Ajouter un président</span>
-      </a>
+<div class="eq-page-content" id="eq-page-content">
+  {# =================== HERO & STATISTIQUES (STYLE MATCHS) =================== #}
+  <section class="hero" id="hero-presidents">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="live-dot"></span>Administration · Saison {{ saison }}</p>
+      <h1 class="hero-title" data-split>Les présidents<br><span class="hero-title-2">des équipes</span></h1>
+      <p class="hero-sub">Gestion des comptes présidentiels et des équipes dirigées au sein du club.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary magnetic" href="{% url 'presidents:creer' %}">
+          <span class="btn-ic">{% icon "plus" %}</span><span>Ajouter un président</span>
+        </a>
+      </div>
     </div>
+
+    <aside class="hero-kpis" aria-label="Statistiques des présidents">
+      <div class="kpi-card">
+        <span class="kpi-label">Présidents</span>
+        <b class="kpi-num">{{ stats.total }}</b>
+        <small class="kpi-sub">enregistrés</small>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Actifs</span>
+        <b class="kpi-num">{{ stats.actifs }}</b>
+        <small class="kpi-sub">comptes actifs</small>
+      </div>
+      <div class="kpi-card">
+        <span class="kpi-label">Libres</span>
+        <b class="kpi-num">{{ stats.sans_equipe }}</b>
+        <small class="kpi-sub">sans équipe</small>
+      </div>
+    </aside>
+  </section>
+
+  {# =================== BARRE DE RECHERCHE SIMPLE =================== #}
+  <section class="coach-toolbar" aria-label="Recherche président">
+    <form class="eq-filters-simple" method="get" action="{% url 'presidents:liste' %}" data-live-search data-target="#presidents-resultats">
+      <div class="coach-search-box">
+        {% icon "search" %}
+        <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par nom ou prénom…" autocomplete="off" aria-label="Rechercher un président">
+        {% if filtre_actif %}
+          <a class="clear-search" href="{% url 'presidents:liste' %}" title="Réinitialiser la recherche">{% icon "x" %}</a>
+        {% endif %}
+      </div>
+      <noscript><button class="btn btn-primary" type="submit">Rechercher</button></noscript>
+    </form>
+  </section>
+
+  {# =================== GRILLE DES PRÉSIDENTS =================== #}
+  <section class="cards-view" id="presidents-resultats" aria-live="polite">
+    {% include "presidentApp/_grille.html" %}
+  </section>
+</div>
+
+{# =================== MODAL DE CONFIRMATION DE SUPPRESSION (ARRIÈRE-PLAN FLOU) =================== #}
+<div class="dialog-wrap eq-modal-backdrop" id="eq-delete-modal" hidden role="dialog" aria-modal="true" aria-labelledby="eq-delete-title">
+  <div class="dialog eq-delete-dialog">
+    <div class="dialog-ic" style="background: rgba(244,63,94,.12); color: var(--red);">{% icon "trash" %}</div>
+    <h2 id="eq-delete-title" style="font-family: var(--display); font-weight: 800; font-size: 28px; text-transform: uppercase; line-height: 1.1; margin-bottom: 10px;">Supprimer le président ?</h2>
+    <p id="eq-delete-message" style="color: var(--text-2); font-size: 14.5px; margin-bottom: 8px;"></p>
+    <p id="eq-delete-sub" style="color: var(--muted); font-size: 13px; margin-bottom: 24px;"></p>
+    <form method="post" id="eq-delete-form" action="">
+      {% csrf_token %}
+      <div class="dialog-actions" style="display: flex; gap: 12px; justify-content: center;">
+        <button type="button" class="btn btn-ghost" data-delete-cancel>Annuler</button>
+        <button type="submit" class="btn btn-primary" style="background: var(--red); border-color: var(--red);">{% icon "trash" %}<span>Confirmer la suppression</span></button>
+      </div>
+    </form>
   </div>
-
-  <aside class="hero-kpis" aria-label="Statistiques des présidents">
-    <div class="kpi-card">
-      <span class="kpi-label">Présidents</span>
-      <b class="kpi-num">{{ stats.total }}</b>
-      <small class="kpi-sub">enregistrés</small>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-label">Actifs</span>
-      <b class="kpi-num">{{ stats.actifs }}</b>
-      <small class="kpi-sub">comptes actifs</small>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-label">Libres</span>
-      <b class="kpi-num">{{ stats.sans_equipe }}</b>
-      <small class="kpi-sub">sans équipe</small>
-    </div>
-  </aside>
-</section>
-
-{# =================== BARRE DE RECHERCHE SIMPLE =================== #}
-<section class="coach-toolbar" aria-label="Recherche président">
-  <form class="eq-filters-simple" method="get" action="{% url 'presidents:liste' %}" data-live-search data-target="#presidents-resultats">
-    <div class="coach-search-box">
-      {% icon "search" %}
-      <input type="text" name="q" value="{{ q }}" placeholder="Rechercher par nom ou prénom…" autocomplete="off" aria-label="Rechercher un président">
-      {% if filtre_actif %}
-        <a class="clear-search" href="{% url 'presidents:liste' %}" title="Réinitialiser la recherche">{% icon "x" %}</a>
-      {% endif %}
-    </div>
-    <noscript><button class="btn btn-primary" type="submit">Rechercher</button></noscript>
-  </form>
-</section>
-
-{# =================== GRILLE DES PRÉSIDENTS =================== #}
-<section class="cards-view" id="presidents-resultats" aria-live="polite">
-  {% include "presidentApp/_grille.html" %}
-</section>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/equipes.js' %}?v=2.0" defer></script>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
-    if (window.gsap) gsap.from(".coach-card", { y: 24, opacity: 0, duration: 0.45, stagger: 0.05, ease: "power2.out" });
-  });
-</script>
+<script src="{% static 'js/equipes.js' %}?v=2.1" defer></script>
 {% endblock %}

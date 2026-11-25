@@ -5,6 +5,7 @@ from datetime import date
 
 from django import forms
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from entraineurApp.models import Entraineur
 from joueurApp.models import Joueur
@@ -55,25 +56,37 @@ class EquipeForm(forms.ModelForm):
     staff = forms.ModelMultipleChoiceField(
         label="Staff technique",
         queryset=Staff.objects.none(),
-        required=False,
+        required=True,
+        error_messages={
+            "required": "Veuillez sélectionner au moins un membre du staff technique.",
+            "invalid_choice": "Membre du staff invalide.",
+        },
     )
     scouts = forms.ModelMultipleChoiceField(
         label="Scouts",
         queryset=Scout.objects.none(),
-        required=False,
+        required=True,
+        error_messages={
+            "required": "Veuillez sélectionner au moins un scout.",
+            "invalid_choice": "Scout invalide.",
+        },
     )
 
-    # Cadre 2 : Joueurs (affectation multiple)
+    # Cadre 2 : Joueurs (affectation multiple obligatoire)
     joueurs = forms.ModelMultipleChoiceField(
         label="Joueurs affectés",
         queryset=Joueur.objects.none(),
-        required=False,
+        required=True,
+        error_messages={
+            "required": "Veuillez sélectionner au moins un joueur pour l'équipe.",
+            "invalid_choice": "Joueur invalide.",
+        },
     )
 
     class Meta:
         model = Equipe
         fields = [
-            "logo", "nom", "niveau", "pays", "ville", "date_creation", "site_web",
+            "logo", "nom", "niveau", "pays", "ville", "date_creation",
             "description", "president", "staff", "scouts",
         ]
         labels = {
@@ -82,7 +95,6 @@ class EquipeForm(forms.ModelForm):
             "pays": "Pays",
             "date_creation": "Date de création",
             "description": "Description",
-            "site_web": "Site web",
         }
         widgets = {
             "nom": forms.TextInput(attrs={
@@ -108,7 +120,6 @@ class EquipeForm(forms.ModelForm):
                 "maxlength": 500,
                 "placeholder": "Présentation et historique de l'équipe (500 caractères max)",
             }),
-            "site_web": forms.URLInput(attrs={"placeholder": "https://www.exemple.com"}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -136,7 +147,7 @@ class EquipeForm(forms.ModelForm):
         self.fields["president"].label_from_instance = lambda p: f"{p.prenom} {p.nom}"
 
         self.fields["entraineur"].queryset = Entraineur.objects.order_by("nom", "prenom")
-        self.fields["entraineur"].label_from_instance = lambda e: f"{e.prenom} {e.nom} ({e.get_type_display() if hasattr(e, 'get_type_display') else e.type or 'Entraîneur'})"
+        self.fields["entraineur"].label_from_instance = lambda e: f"{e.prenom} {e.nom}"
 
         self.fields["staff"].queryset = Staff.objects.order_by("nom", "prenom")
         self.fields["staff"].label_from_instance = lambda s: f"{s.prenom} {s.nom}"
@@ -154,6 +165,22 @@ class EquipeForm(forms.ModelForm):
             if actuel_entraineur:
                 self.fields["entraineur"].initial = actuel_entraineur.pk
             self.fields["joueurs"].initial = list(self.instance.joueurs.values_list("pk", flat=True))
+
+    def _valeurs_selectionnees(self, nom_champ):
+        val = self[nom_champ].value() or []
+        return {str(v) for v in val}
+
+    @property
+    def staff_selectionnes(self):
+        return self._valeurs_selectionnees("staff")
+
+    @property
+    def scouts_selectionnes(self):
+        return self._valeurs_selectionnees("scouts")
+
+    @property
+    def joueurs_selectionnes(self):
+        return self._valeurs_selectionnees("joueurs")
 
     # ─── Validations de champs ───
     def clean_nom(self):
@@ -205,12 +232,6 @@ class EquipeForm(forms.ModelForm):
                 raise ValidationError(erreurs)
         return logo
 
-    def clean_site_web(self):
-        url = (self.cleaned_data.get("site_web") or "").strip()
-        if url and not url.startswith(("http://", "https://")):
-            raise ValidationError("L'URL doit commencer par http:// ou https://.")
-        return url
-
     def clean(self):
         cleaned_data = super().clean()
         pays = cleaned_data.get("pays")
@@ -225,35 +246,54 @@ class EquipeForm(forms.ModelForm):
         return cleaned_data
 
     def save(self, commit=True):
-        equipe = super().save(commit=commit)
+        with transaction.atomic():
+            equipe = super().save(commit=commit)
 
-        # Si le logo a été marqué comme supprimé et qu'un nouveau logo est fourni, il sera remplacé automatiquement.
-        # Si supprimer_logo sans nouveau fichier, on supprime l'ancien
-        supprimer_logo = self.cleaned_data.get("supprimer_logo", False)
-        nouveau_logo = self.cleaned_data.get("logo")
-        if supprimer_logo and not nouveau_logo and equipe.logo:
-            equipe.logo.delete(save=False)
-            equipe.logo = None
+            # Si le logo a été marqué comme supprimé sans nouveau fichier, on supprime l'ancien
+            supprimer_logo = self.cleaned_data.get("supprimer_logo", False)
+            nouveau_logo = self.cleaned_data.get("logo")
+            if supprimer_logo and not nouveau_logo and equipe.logo:
+                equipe.logo.delete(save=False)
+                equipe.logo = None
+                if commit:
+                    equipe.save(update_fields=["logo"])
+
             if commit:
-                equipe.save(update_fields=["logo"])
+                # Gestion de l'entraîneur (OneToOne)
+                nouvel_entraineur = self.cleaned_data.get("entraineur")
+                if nouvel_entraineur:
+                    ancien_entraineur = getattr(equipe, "entraineur", None)
+                    if ancien_entraineur and ancien_entraineur.pk != nouvel_entraineur.pk:
+                        ancien_entraineur.equipe = None
+                        ancien_entraineur.save()
+                    nouvel_entraineur.equipe = equipe
+                    nouvel_entraineur.save()
 
-        if commit:
-            # Gestion de l'entraîneur (OneToOne)
-            nouvel_entraineur = self.cleaned_data.get("entraineur")
-            if nouvel_entraineur:
-                ancien_entraineur = getattr(equipe, "entraineur", None)
-                if ancien_entraineur and ancien_entraineur.pk != nouvel_entraineur.pk:
-                    ancien_entraineur.equipe = None
-                    ancien_entraineur.save()
-                nouvel_entraineur.equipe = equipe
-                nouvel_entraineur.save()
+                # Gestion des joueurs affectés sans conflit de (equipe, numero_maillot)
+                joueurs_selectionnes = list(self.cleaned_data.get("joueurs", []))
+                pks = {j.pk for j in joueurs_selectionnes}
 
-            # Gestion des joueurs affectés
-            joueurs_selectionnes = self.cleaned_data.get("joueurs", [])
-            pks = set(j.pk for j in joueurs_selectionnes)
-            # Retirer l'équipe des joueurs qui ne sont plus cochés
-            equipe.joueurs.exclude(pk__in=pks).update(equipe=None)
-            # Assigner l'équipe aux joueurs sélectionnés
-            Joueur.objects.filter(pk__in=pks).update(equipe=equipe)
+                # 1. Retirer d'abord les joueurs décochés pour libérer leurs numéros
+                equipe.joueurs.exclude(pk__in=pks).update(equipe=None)
 
-        return equipe
+                # 2. Conserver en priorité les numéros des joueurs déjà présents dans l'équipe
+                restants = list(equipe.joueurs.filter(pk__in=pks).order_by("pk"))
+                numeros_pris = {j.numero_maillot for j in restants if j.numero_maillot is not None}
+
+                # 3. Affecter les nouveaux joueurs en évitant toute collision de maillot
+                nouveaux = sorted(
+                    [j for j in joueurs_selectionnes if j.equipe_id != equipe.pk],
+                    key=lambda j: j.pk,
+                )
+                for j in nouveaux:
+                    if j.numero_maillot is not None and j.numero_maillot in numeros_pris:
+                        j.numero_maillot = next(
+                            (n for n in range(1, 100) if n not in numeros_pris),
+                            None,
+                        )
+                    if j.numero_maillot is not None:
+                        numeros_pris.add(j.numero_maillot)
+                    j.equipe = equipe
+                    j.save(update_fields=["equipe", "numero_maillot"])
+
+            return equipe

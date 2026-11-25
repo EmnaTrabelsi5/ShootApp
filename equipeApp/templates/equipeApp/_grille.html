@@ -29,11 +29,6 @@
           <div class="coach-avatar eq-logo" {% if equipe.logo %}style="background-image: url('{{ equipe.logo.url }}');"{% endif %}>
             {% if not equipe.logo %}<span>{{ equipe.initiales }}</span>{% endif %}
           </div>
-          {% if equipe.site_web %}
-            <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" class="top-pill" style="font-size: 11.5px; text-decoration: none; color: var(--coach-green);" title="{{ equipe.site_web }}">
-              {% icon "globe" %} <span>Site web</span>
-            </a>
-          {% endif %}
         </div>
 
         {# Nom de l'équipe #}
@@ -44,7 +39,7 @@
           {% icon "map-pin" %} {{ equipe.ville }}{% if equipe.pays %} · {{ equipe.pays }}{% endif %}
         </p>
 
-        {# Informations essentielles uniquement : Président, Entraîneur, Site web #}
+        {# Informations essentielles uniquement : Président, Entraîneur #}
         <div class="coach-details">
           <div class="coach-detail-item" title="Président">
             {% icon "award" %}
@@ -58,14 +53,6 @@
               <strong>Entraîneur :</strong> {% if equipe.entraineur %}{{ equipe.entraineur.prenom }} {{ equipe.entraineur.nom }}{% else %}Non assigné{% endif %}
             </span>
           </div>
-          {% if equipe.site_web %}
-          <div class="coach-detail-item" title="Site officiel">
-            {% icon "globe" %}
-            <a href="{{ equipe.site_web }}" target="_blank" rel="noopener" style="color: var(--text-2); text-decoration: underline; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-              {{ equipe.site_web }}
-            </a>
-          </div>
-          {% endif %}
         </div>
 
         {# Actions : Uniquement « Fiche » et « Supprimer » #}
@@ -73,7 +60,14 @@
           <a class="act act-view" href="{% url 'equipes:detail' equipe.pk %}" style="flex: 1; justify-content: center;">
             {% icon "shield" %} <span>Fiche</span>
           </a>
-          <a class="act act-del" href="{% url 'equipes:supprimer' equipe.pk %}" title="Supprimer {{ equipe.nom }}">
+          <a class="act act-del"
+             href="{% url 'equipes:supprimer' equipe.pk %}"
+             data-delete-trigger
+             data-delete-title="Supprimer l'équipe ?"
+             data-delete-message="Êtes-vous certain de vouloir supprimer l'équipe <strong>{{ equipe.nom|escape }}</strong> ({{ equipe.ville|escape }}) ?"
+             data-delete-sub="Cette action est définitive. Les matchs associés à cette équipe seront également supprimés. Les joueurs et l'entraîneur ne sont pas supprimés : ils deviennent simplement sans équipe."
+             data-delete-url="{% url 'equipes:supprimer' equipe.pk %}"
+             title="Supprimer {{ equipe.nom }}">
             {% icon "trash" %}
           </a>
         </div>

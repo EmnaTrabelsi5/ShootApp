@@ -1,6 +1,6 @@
 from django.db import models
 
-from .outils import normalize_text, validate_not_future, validate_url_scheme
+from .outils import normalize_text
 
 
 class Equipe(models.Model):
@@ -21,7 +21,6 @@ class Equipe(models.Model):
     # Module Équipes (CRUD) : attributs ajoutés
     pays = models.CharField(max_length=100, blank=True)
     description = models.TextField(max_length=500, blank=True)
-    site_web = models.URLField(blank=True, validators=[validate_url_scheme])
     # Équipe 1 --> 0..* Staff   et   Scout --> Équipe 1..n (consultation « mon équipe »)
     staff = models.ManyToManyField("staffApp.Staff", blank=True, related_name="equipes")
     scouts = models.ManyToManyField("scoutApp.Scout", blank=True, related_name="equipes")

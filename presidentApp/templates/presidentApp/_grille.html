@@ -33,26 +33,37 @@
         {# Nom & Prénom #}
         <h3 class="coach-name">{{ p.prenom }} {{ p.nom }}</h3>
 
-        {# Adresse #}
+        {# Nationalité #}
         <p class="coach-function">
-          {% icon "map-pin" %} {{ p.adresse|default:"Adresse non renseignée" }}
+          {% icon "flag" %} {{ p.nationalite|default:"Nationalité non renseignée" }}
         </p>
 
-        {# Date de début de présidence #}
+        {# E-mail & Équipes dirigées #}
         <div class="coach-details">
+          <div class="coach-detail-item" title="{{ p.email }}">
+            {% icon "mail" %}
+            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ p.email }}</span>
+          </div>
           <div class="coach-detail-item">
-            {% icon "calendar" %}
-            <span><strong>Début :</strong> {{ p.date_debut_presidence|date:"d/m/Y"|default:"Non renseigné" }}</span>
+            {% icon "shield" %}
+            <span><strong>Équipe{{ p.nb_equipes|pluralize }} :</strong> {{ p.nb_equipes }}</span>
           </div>
         </div>
 
-        {# Actions : Fiche et Supprimer uniquement (pas de bouton Modifier sur la carte) #}
+        {# Actions : Fiche et Supprimer uniquement #}
         <div class="coach-card-actions">
           <a class="act act-view" href="{% url 'presidents:detail' p.pk %}" style="flex: 1; justify-content: center;">
             {% icon "user" %} <span>Fiche</span>
           </a>
           {% if user.pk != p.pk %}
-            <a class="act act-del" href="{% url 'presidents:supprimer' p.pk %}" title="Supprimer {{ p.prenom }} {{ p.nom }}">
+            <a class="act act-del"
+               href="{% url 'presidents:supprimer' p.pk %}"
+               data-delete-trigger
+               data-delete-title="Supprimer le président ?"
+               data-delete-message="Êtes-vous certain de vouloir supprimer <strong>{{ p.prenom|escape }} {{ p.nom|escape }}</strong> ?"
+               data-delete-sub="Cette action supprimera définitivement son compte de connexion ({{ p.email|escape }}). S'il préside des équipes, elles resteront conservées sans président."
+               data-delete-url="{% url 'presidents:supprimer' p.pk %}"
+               title="Supprimer {{ p.prenom }} {{ p.nom }}">
               {% icon "trash" %}
             </a>
           {% endif %}

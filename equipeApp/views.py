@@ -7,18 +7,21 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from django.db.models import Count, Max, Q
-from django.db.models.deletion import ProtectedError
+from django.db import transaction
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
+from competitionApp.models import Match
 from joueurApp.models import Joueur
 from utilisateurApp.roles import est_admin
 
 from .acces import admin_requis, equipes_de, peut_consulter
 from .forms import EquipeForm
 from .models import Equipe
-from .outils import normalize_text, PAYS_LISTE, PAYS_VILLES_MONDE
+from .outils import normalize_text, PAYS_LISTE, PAYS_VILLES_MONDE, prochain_id_modele
 
 PAR_PAGE = 12
 
@@ -27,10 +30,7 @@ def _est_ajax(request):
     return request.headers.get("x-requested-with") == "XMLHttpRequest"
 
 
-# ─────────────────────────── Administrateur : CRUD ───────────────────────────
-@admin_requis
-def liste(request):
-    """Liste des équipes : recherche dynamique uniquement par nom d'équipe."""
+def _contexte_liste(request):
     q = request.GET.get("q", "").strip()
 
     equipes = (
@@ -45,7 +45,7 @@ def liste(request):
     page = Paginator(equipes, PAR_PAGE).get_page(request.GET.get("page", 1))
     qs = urlencode({"q": q}) if q else ""
 
-    contexte = {
+    return {
         "page": page,
         "total": page.paginator.count,
         "q": q,
@@ -57,6 +57,13 @@ def liste(request):
             "joueurs": Joueur.objects.filter(equipe__isnull=False).count(),
         },
     }
+
+
+# ─────────────────────────── Administrateur : CRUD ───────────────────────────
+@admin_requis
+def liste(request):
+    """Liste des équipes : recherche dynamique uniquement par nom d'équipe."""
+    contexte = _contexte_liste(request)
     if _est_ajax(request):
         return render(request, "equipeApp/_grille.html", contexte)
 
@@ -66,7 +73,7 @@ def liste(request):
 @admin_requis
 def creer(request):
     """Création d'une équipe avec consultation automatique de l'ID prévisionnel."""
-    prochain_id = (Equipe.objects.aggregate(max_id=Max("id"))["max_id"] or 0) + 1
+    prochain_id = prochain_id_modele(Equipe)
     form = EquipeForm(request.POST or None, request.FILES or None)
 
     if request.method == "POST":
@@ -118,26 +125,23 @@ def supprimer(request, pk):
     equipe = get_object_or_404(Equipe, pk=pk)
     if request.method == "POST":
         nom = equipe.nom
-        try:
+        with transaction.atomic():
+            Match.objects.filter(Q(equipe_domicile=equipe) | Q(equipe_exterieur=equipe)).delete()
             equipe.delete()
-        except ProtectedError:
-            messages.error(
-                request,
-                f"Impossible de supprimer « {nom} » : l'équipe a des matchs enregistrés. "
-                "Supprimez d'abord ses matchs associés.",
-            )
-            return redirect("equipes:detail", pk=pk)
-        messages.success(request, f"L'équipe « {nom} » a été supprimée avec succès.")
+        messages.success(request, f"L'équipe « {nom} » et ses matchs associés ont été supprimés avec succès.")
         return redirect("equipes:liste")
-    return render(request, "equipeApp/confirmer_suppression.html", {"equipe": equipe})
+
+    contexte = _contexte_liste(request)
+    contexte["equipe"] = equipe
+    return render(request, "equipeApp/confirmer_suppression.html", contexte)
 
 
 # ─────────────────────────── Consultation : tous les rôles ───────────────────────────
 @login_required
 def detail(request, pk):
     """Fiche détaillée d'une équipe :
-    Cadre 1 : Informations générales (nom, niveau, pays, ville, date_création, site_web, description).
-    Cadre 2 : Composition (président, entraîneur, scout, staff, joueurs, effectif total, adresses).
+    Cadre 1 : Informations générales (nom, niveau, pays, ville, date_création, description).
+    Cadre 2 : Composition (président, entraîneur, scout, staff, joueurs, effectif total).
     """
     equipe = get_object_or_404(
         Equipe.objects
@@ -148,6 +152,16 @@ def detail(request, pk):
     if not peut_consulter(request.user, equipe):
         messages.error(request, "Vous ne pouvez consulter que votre propre équipe.")
         return redirect("equipes:mon_equipe")
+
+    retour = (request.GET.get("retour") or "").strip()
+    if retour and url_has_allowed_host_and_scheme(
+        retour, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        retour_url = retour
+        retour_label = "Retour à la fiche président" if "/presidents/" in retour else "Retour"
+    else:
+        retour_url = reverse("equipes:liste")
+        retour_label = "Retour aux équipes"
 
     entraineur = getattr(equipe, "entraineur", None)
     joueurs = equipe.joueurs.order_by("numero_maillot", "nom")
@@ -161,6 +175,8 @@ def detail(request, pk):
         "joueurs": joueurs,
         "nb_joueurs": joueurs.count(),
         "peut_gerer": est_admin(request.user),
+        "retour_url": retour_url,
+        "retour_label": retour_label,
     })
 
 
@@ -174,8 +190,8 @@ def mon_equipe(request):
         .select_related("president", "entraineur")
         .prefetch_related("staff", "scouts", "joueurs")
     )
-    if len(equipes) == 1:
-        return redirect("equipes:detail", pk=equipes[0].pk)
+    for eq in equipes:
+        eq.joueurs_tries = eq.joueurs.order_by("numero_maillot", "nom")
     return render(request, "equipeApp/mes_equipes.html", {"equipes": equipes})
 
 
